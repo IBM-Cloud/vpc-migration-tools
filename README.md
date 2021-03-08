@@ -8,7 +8,7 @@ review carefully any materials from this repository before using them on any liv
 
 ## Pre Validation Check Scripts ##
 When migrating an existing guest machine image to IBM Cloud VPC as a custom image, it needs to
-meet the minimum requirements in order for it to be migrated over as described in the following [link] (https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images).
+meet the minimum requirements in order for it to be migrated over as described in the following [link](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images).
 
 The below scripts were created to help automate the validation of the candidate guest machine.
 - [Redhat Precheck Script](Linux-Precheck-Srcripts/)
