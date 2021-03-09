@@ -2,9 +2,10 @@
 ## Scope
 This repository is dedicated in providing different types of tools and solutions that may be
 useful with your infastructure migration to IBM Cloud VPC.  The tools are made up of collection
-of scripts or with existing open source utility.  The tools are made available to anyone who
-wishes to use them as is or free to modify them to fit their needs. As a recommended practice,
-review carefully any materials from this repository before using them on any live system.
+of individual scripts or with existing open source utility.  The tools are made available to
+anyone who wishes to use them as is or free to modify them to fit their needs. As a recommended
+practice, review carefully any materials from this repository before using them on any live
+system.
 
 ## Pre Validation Check Scripts ##
 When migrating an existing guest machine image to IBM Cloud VPC as a custom image, it needs to
