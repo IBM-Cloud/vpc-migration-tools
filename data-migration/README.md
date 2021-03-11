@@ -15,6 +15,7 @@
 - "C:\<directory_name>\<sub_driectory_name>\<file_name>" Path in windows/cygwin will be written/presented as "/cygdrive/c/<directory_name>/<sub_driectory_name>/<file_name>"
 - A trailing slash on a source path means "copy the contents of this directory". Without a trailing slash it means "copy the directory".
 - For windows shell script, use unix style end of line format to avoid error.
+- Whenever user name is left blank, if source instance is windows then script will consider 'Administrator' as default user name, if source instance is linux then script will consider 'root' as default user name.
 
 ### Default options
 - -- archive mode  -  equals -rlptgoD (no -H,-A,-X)
