@@ -18,13 +18,19 @@ The below scripts were created to help automate the validation of the candidate 
 ## Data Migration ##
 There are many tools available to migrate data from the source to the target machine. The
 script provided here is using an open source utility rsync with the some default commands.
-[rysnc script](## folder location)
+[rysnc script](data-migration/)
+
+## Image Conversion ##
+If you are looking to move away from other hypervisor, then image needs to be in qcow2. This
+scripts helps convert guest images from Vmware in vdmk format to qcow2.
+[image conversion](image-conversion)
 
 ## Suggestion/Issues ##
 While there are no warranties of any kind, and there is no service or technical support
 available for these materials from IBM support, your comments are welcomed by the maintainers
-and developers, who reserve the right to revise or remove the materials at any time. To
-report a problem, provide suggestion or comment, please open a GitHub issue and we will do
-our best to address them.
+and developers, who reserve the right to revise or remove the materials at any time. We,
+maintainers and developers, will support the scripts posted in this repository. To report a
+problem, provide suggestion or comment, please open a GitHub issue. If the scripts are
+modified and have issues, we will do our best to assist.
 
 <!-- A more detailed Usage or detailed explaination of the repository here -->
