@@ -1,5 +1,5 @@
 ### Link for detailed IBM documentation
-- https://test.cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-data-migration-classic-to-vpc - This is test link. It will be replace with real documentation link.
+- [IBM Cloud documentation for 'Migrating data from IBM Cloud classic infrastructure to VPC' ](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-data-migration-classic-to-vpc)
 
 ### How to execute script?
 - Bash *<auto_rsync_file_name>* 
