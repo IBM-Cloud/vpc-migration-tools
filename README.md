@@ -18,12 +18,12 @@ The below scripts were created to help automate the validation of the candidate 
 
 ## Data Migration ##
 There are many tools available to migrate data from the source to the target machine. The
-script provided here is using an open source utility rsync with the some default commands.
+script provided here is using an open source utility rsync with the some default commands.</br>
 [rysnc script](data-migration/)
 
 ## Image Conversion ##
 If you are looking to move away from other hypervisor, then image needs to be in qcow2. This
-scripts helps convert guest images from Vmware in vdmk format to qcow2.
+scripts helps convert guest images from Vmware in vdmk format to qcow2. </br>
 [image conversion](image-conversion)
 
 ## Suggestion/Issues ##
@@ -32,7 +32,7 @@ available for these materials from IBM support, your comments are welcomed by th
 and developers, who reserve the right to revise or remove the materials at any time. We,
 maintainers and developers, will support the scripts posted in this repository. To report a
 problem, provide suggestion or comment, please open a GitHub issue or email us at
-[*<email_distribution_list>*](mailto:blah@ibm.com?subject=[VPC Migration Tools]). If the
+[email_distribution_list](mailto:blah@ibm.com?subject=[GitHub]%20VPC%20Migration%20Scripts). If the
 scripts are modified and have issues, we will do our best to assist.
 
 <!-- A more detailed Usage or detailed explaination of the repository here -->
