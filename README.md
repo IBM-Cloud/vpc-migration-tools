@@ -1,5 +1,4 @@
 # VPC Migration Tools
-## Scope
 
 This repository provides access to different tools and solutions that you can use when migrating your infastructure to IBM Cloud VPC.  The tools include  individual custom scripts and open source utilities.  You can use the tools as is or you can modify them to fit your needs. As a recommended
 practice, carefully review any materials from this repository before you use them on any live systems.
