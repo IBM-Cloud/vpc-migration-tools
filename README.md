@@ -24,8 +24,6 @@ Use these custom scripts to validate the candidate guest machine.
 There are many tools available to migrate data from the source to the target machine. This
 script uses an open source utility `rsync` with the some default commands. 
 
-**KT comment** Should list the commands used or give some more direction other than just the rsync utility, since you say 'some default commands'
-
 [rysnc script](data-migration/)
 
 ## Image Conversion ##
