@@ -27,7 +27,7 @@ script uses an open source utility `rsync` with the some default commands.
 
 ## Image Conversion ##
 
-If you are migrating from another hypervisor, the image needs to be in qcow2. Use this script to convert guest images from Vmware in vdmk format to qcow2. 
+If you are migrating from another hypervisor, the image needs to be in `qcow2`. Use this script to convert guest images from Vmware in vdmk format to qcow2. 
 
 [image conversion](image-conversion)
 
