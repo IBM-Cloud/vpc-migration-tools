@@ -16,8 +16,7 @@ For more information about managing images, see [link](https://cloud.ibm.com/doc
 
 Use these custom scripts to validate the candidate guest machine.
 
-- [Redhat Precheck Script](Linux-Precheck-Srcripts/)
-- [New custom Windows Prep Script for Importing](Create-Windows-Import/)
+[OS Precheck Scripts](os-precheck-scripts/)
 
 ## Data Migration ##
 
