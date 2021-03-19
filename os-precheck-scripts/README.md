@@ -59,7 +59,7 @@ access, then another box download (CloudbaseInitSetup_Stable_x64.msi and virtio-
 the files to the C:\temp folder.
 - Windows has a PowerShell script policy that you might need to change -- https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.1
      - If you change the policy, it’s a good practice to change the settings back.
-- Usage ```PS C:\ .\windows_precheck.ps```
+- Usage ```PS C:\ .\windows_precheck.ps1```
 - The system still needs to go through Windows sysprep, device driver update, image conversion.
 For more information, reference the above link. 
 
