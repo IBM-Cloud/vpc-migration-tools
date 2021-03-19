@@ -38,8 +38,7 @@ While there are no warranties of any kind, and there is no service or technical 
 available for these scripts from IBM support, your comments are welcomed by the maintainers
 and developers, who reserve the right to revise or remove the tools at any time. We,
 maintainers and developers, will support the scripts posted in this repository. To report 
-problems, provide suggestions or comments, please open a GitHub issue or email us at
-[email_distribution_list](mailto:blah@ibm.com?subject=[GitHub]%20VPC%20Migration%20Scripts). If the
-scripts are modified and have issues, we will do our best to assist.
+problems, provide suggestions or comments, please open a GitHub issue. If the scripts are
+modified and have issues, we will do our best to assist.
 
 <!-- A more detailed Usage or detailed explaination of the repository here -->
