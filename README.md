@@ -16,7 +16,7 @@ For more information about managing images, see [link](https://cloud.ibm.com/doc
 
 Use these custom scripts to validate the candidate guest machine.
 
-- [OS Precheck Scripts](os-precheck-scripts/)
+[OS Precheck Scripts](os-precheck-scripts/)
 
 ## Data Migration ##
 
