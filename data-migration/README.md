@@ -68,5 +68,5 @@ Here are some guidance when using this script:
 - Whenever user name is left blank, if source instance is windows then script will consider 'Administrator' as default user name, if source instance is linux then script will consider 'root' as default user name.
 
 # Additional Resources
-- [IBM Cloud documentation for 'Migrating data from IBM Cloud classic infrastructure to VPC' ](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-data-migration-classic-to-vpc)
+- How-to guide for [Migrating data from IBM Cloud classic infrastructure to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-data-migration-classic-to-vpc)
 - [Rsync Manual](https://linux.die.net/man/1/rsync)
