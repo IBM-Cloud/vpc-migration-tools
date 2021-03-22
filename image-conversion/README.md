@@ -1,3 +1,24 @@
+# Overview
+# Configuration
+- `migration.cfg` contains required configuration for image conversion.
+- 
+# Usage
+- `bash migration_prep.sh` for classic source Linux instance.
+- `ps migration_prep.ps1` for classic source Windows instance.
+- Manual steps in between
+    - Network reset
+        - Windows–Network Settings -> Network & Internet -> Status -> Reset Network
+        - This disables network access to machine
+    - System prep
+        - Execute following command
+            - `C:\Windows\System32\Sysprep\Sysprep.exe /oobe/generalize /shutdown "/unattend:C:\ProgramFiles\CloudbaseSolutions\Cloudbase-Init\conf\Unattend.xml"`
+            - This will remove all system/hardware dependent files to make it work in any environment (cloud), This will also remove Administrator user files.
+- Configure `migration.cfg`
+- `bash migration.sh`
+# Tips
+- Execute pre script as Admin user ( for windows ) or root user ( for linux ), to behave perfectly.
+- Region mentioned in migration configuration file should match with region selected in IBM Cloud CLI.
+- For windows, once QEMU tool is installed, append its installation path to windows environment variable.
 # FAQ
 ## Windows
 - How to resolve cloudbase-init download failure?
@@ -37,7 +58,6 @@
     - Create Gen 2 VSI from IBM Cloud Console with uploaded converted image.
 
 ------------
-
 
 - ## Linux
 - How to resolve SSH failure?
@@ -79,3 +99,5 @@
     - create custom image from IBM Cloud Console ( IBM CLI ) with uploaded converted image.
 - How to resolve VSI creation failure?
     - Create Gen 2 VSI from IBM Cloud Console with uploaded converted image.
+# Additional Resources
+- How-to guide for [Image Conversion - Add link here for IBM documentation](https://cloud.ibm.com/docs/cloud-infrastructure?topic=#)
