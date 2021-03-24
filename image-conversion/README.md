@@ -16,9 +16,10 @@
 - Configure `migration.cfg`
 - `bash migration.sh`
 # Tips
-- Execute pre script as Admin user ( for windows ) or root user ( for linux ), to behave perfectly.
+- Execute pre check scripts ( hyperlink script files here )  as Admin user ( for windows ) or root user ( for linux ), to behave perfectly.
 - Region mentioned in migration configuration file should match with region selected in IBM Cloud CLI.
 - For windows, once QEMU tool is installed, append its installation path to windows environment variable.
+- `migration.sh`, a migration script currently supports macOS and Linux only. 
 # FAQ
 ## Windows
 - How to resolve cloudbase-init download failure?
