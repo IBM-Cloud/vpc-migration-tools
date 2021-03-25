@@ -100,4 +100,4 @@
 - How to resolve VSI creation failure?
     - Create Gen 2 VSI from IBM Cloud Console with uploaded converted image.
 # Additional Resources
-- How-to guide for [Image Conversion - Add link here for IBM documentation](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
+- How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
