@@ -1,6 +1,28 @@
 # Overview
 # Configuration
 - `migration.cfg` contains required configuration for image conversion.
+- All parameters in `migration.cfg` are mandatory. It must have correct value. Any incorrect value might result in error or unexpected behavior.
+- `REGION`- A region name of a resource. e.g. `tokyo`
+- `BUCKET`- A IBM's Client Object Storage bucket name.
+- `IMAGE_FILENAME` - Absolute path of image with VMDK format.
+- `RESOURCE_GROUP` - A resource group name of custom image and VSI.
+- `OS_NAME` - Operating system's name. e.g. If its ubuntu 18.04 then `OS_NAME=ubuntu`
+- `OS_VERSION` - Major and minor version of operating system e.g. If its ubuntu 18.04 then `OS_VERSION=18.04`
+- Supported operating systems are
+    - Centos 7
+    - Centos 8
+    - Redhat 7
+    - Redhat 8
+    - Ubuntu 16.04
+    - Ubuntu 18.04
+    - Ubuntu 20.04
+    - Debian 10
+    - Debian 9
+    - Debian 8
+    - Windows 2012
+    - Windows 2012-r2
+    - Windows 2016
+- No space before and after `=` sign. syntax : `PARAMETER_NAME=value`
 # Usage
 - `bash migration_prep.sh` for classic source Linux instance.
 - `ps migration_prep.ps1` for classic source Windows instance.
@@ -12,7 +34,7 @@
         - Execute following command
             - `C:\Windows\System32\Sysprep\Sysprep.exe /oobe/generalize /shutdown "/unattend:C:\ProgramFiles\CloudbaseSolutions\Cloudbase-Init\conf\Unattend.xml"`
             - This will remove all system/hardware dependent files to make it work in any environment (cloud), This will also remove Administrator user files.
-- Configure `migration.cfg`
+- Configure `migration.cfg`. Refer configuration section.
 - `bash migration.sh`
 # Tips
 - Execute pre check scripts ( hyperlink script files here )  as `Administrator` user ( for windows ) or `root` user ( for linux ), to behave perfectly.
