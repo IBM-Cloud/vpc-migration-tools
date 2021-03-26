@@ -9,19 +9,10 @@
 - `OS_NAME` - Operating system's name. e.g. If its ubuntu 18.04 then `OS_NAME=ubuntu`
 - `OS_VERSION` - Major and minor version of operating system e.g. If its ubuntu 18.04 then `OS_VERSION=18.04`
 - Supported operating systems are
-    - Centos 7
-    - Centos 8
-    - Redhat 7
-    - Redhat 8
-    - Ubuntu 16.04
-    - Ubuntu 18.04
-    - Ubuntu 20.04
-    - Debian 10
-    - Debian 9
-    - Debian 8
-    - Windows 2012
-    - Windows 2012-r2
-    - Windows 2016
+    - Centos 7, 8
+    - Redhat 7, 8
+    - Ubuntu 16.04, 18.04, 20.04
+    - Windows 2012, 2012-r2, 2016
 - No space before and after `=` sign. syntax : `PARAMETER_NAME=value`
 # Usage
 - `bash migration_prep.sh` for classic source Linux instance.
@@ -124,3 +115,7 @@
     - Create Gen 2 VSI from IBM Cloud Console with uploaded converted image.
 # Additional Resources
 - How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
+
+# Known issues
+- At the moment, for RHEL 8, CentOS 8 operating systems, secondary volume migration is not supported aforementioned scripts.
+- At the moment, for Debian operating system, no migration is supported at all.
