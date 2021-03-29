@@ -1,4 +1,4 @@
-# Precheck Scripts #
+# Precheck Scripts
 There are a set of minimum requirements that the image must meet when you migrate a virtual/guest
 machine to IBM Cloud as a custom image. More information can be found at the following links:
 - [Importing and managing custom images](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images)
@@ -7,7 +7,7 @@ machine to IBM Cloud as a custom image. More information can be found at the fol
 It is highly recommended to test the pre-check scripts on a clone of the virtual/guest machine
 first before using it on a production system.
 
-## Linux ##
+# Linux
 Resource: [Creating a Linux custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image)
 
 A script written in BASH that automates some of the tasks are described in the link above.  This
@@ -34,31 +34,31 @@ To execute the script, run the following command: </br>
 
 - Execute pre-check scripts (hyperlink script files here)  as `root` user (for Linux), to behave perfectly.
 
-### FAQ ###
-#### 1. How do I resolve SSH failure? ####
+## FAQ
+1. How do I resolve SSH failure?
 * Make sure that default repo is enabled.
 * Make sure that you have good internet connection.
 * Make sure to public keys are correctly placed to respective host.
 * Make sure that firewall is not blocking SSH connection.
     
-#### 2. How do I resolve FSTAB check failure? ####
+2. How do I resolve FSTAB check failure?
 * Add `nofail` to all entries in fstab file but for `/` and `/boot`.
 * OR remove all entries but `/` and `/boot`.
 
-#### 3. How do I resolve network check failure? ####
+3. How do I resolve network check failure?
 * Set at least one network adapter to get the IP address automatically (DHCP enabled). 
     
-#### 4. How do I resolve grub configuration failure? ####
+4. How do I resolve grub configuration failure?
 * Add following four parameters to `/etc/default/grub` file as it is.
   - `(nomodeset, nofb, vga=normal, console=ttyS0)`
 
-#### 5. How do I resolve Virtio driver failure? ####
+5. How do I resolve Virtio driver failure? <br>
 Install Virtio drivers and its dependancies by yourself.
 
-#### 6. How do I resolve cloud-init failure? ####
+6. How do I resolve cloud-init failure? <br>
 Refer to step 5 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image, install, and configure accordingly.
 
-## Windows ##
+# Windows
 Resource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
 
 If you are looking to build a new Windows system image to be imported to IBM Cloud VPC, this
@@ -93,26 +93,26 @@ For more information, reference the above link.
 - In windows, `migration_prep.ps1` creates duplicate directories of 'Music', 'Pictures', 'Videos' under `c:\backup\Administartor\document\`.
 - Execute pre check scripts ( hyperlink script files here ) as `Administrator` user, to behave perfectly.
 
-### FAQ ###
-#### 1. How do I resolve cloudbase-init download failure? ####
+## FAQ
+1. How do I resolve cloudbase-init download failure?
 - Download cloudbase-init and save it in `C:\temp\` directory and re-run the script or install cloudbase-init by yourself. 
      - [64 bit](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi "Cloudbase-init X64")
      - [32 bit](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi "Cloudbase init X86")
    
-#### 2. How do I resolve cloudbase-init installation check failed? ####
+2. How do I resolve cloudbase-init installation check failed? <br>
 Run msi file in `C:\temp\Cloudbase.msi` and install it by yourself. 
 
-#### 3. How do I resolve cloudbase-init configuration failure? ####
+3. How do I resolve cloudbase-init configuration failure? <br>
 Refer to step 4 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image
 
-#### 4. How do I resolve Virtio download failure? ####
+4. How do I resolve Virtio download failure? <br>
 Refer to step 3 from https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image 
 
-#### 5. How do I resolve Virtio installation failure? ####
+5. How do I resolve Virtio installation failure? <br>
 Mount and install VirtIO ISO file in `C:\temp\virtio-win.iso` and install `virtio-win-gt-x64.msi` from ISO file by yourself.
 
-#### 6. How do I resolve backup failure? ####
+6. How do I resolve backup failure? <br>
 Backup `C:\Users\Administrator\` directory to safe place for future need.
 
-#### 7. How do I resolve configure check failure? ####
+7. How do I resolve configure check failure? <br>
 Make sure to have correct value for each parameter.
