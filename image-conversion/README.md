@@ -5,10 +5,11 @@ This script performs following activities:
 - Check for presence of qcow2 image in COS (client Object Storage)
 - Create custom image
 
-# Prerequisite
+## Prerequisite
 - Run [OS pre-check scripts](https://github.com/IBM-Cloud/vpc-migration-tools/tree/main/os-precheck-scripts)
 
-# Configuration
+# Usage
+## Configuration
 - `migration.cfg` contains required configuration for image conversion.
 - All parameters in `migration.cfg` are mandatory. It must have correct values. Any incorrect value might result in an error or unexpected behavior.
 - `REGION`- A region name of a resource. e.g. `tokyo`
@@ -24,10 +25,10 @@ This script performs following activities:
     - Windows 2012, 2012-r2, 2016
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
 
-# Usage
-- Perform the following steps only if your instance is Windows, after you have successfully executed OS pre-check scripts :-
+## Windows Specific Guidelines
+- Perform the following steps only if your instance is _**Windows**_, after you have successfully executed OS pre-check scripts:
     - Network reset
-        - Windows–Network Settings -> Network & Internet -> Status -> Reset Network
+        - `Windows–Network Settings -> Network & Internet -> Status -> Reset Network`
         - This disables network access to machine
     - System prep
         - Execute following command:
@@ -36,25 +37,14 @@ This script performs following activities:
 - Configure `migration.cfg`. Refer to the Configuration section.
 - Run `bash migration.sh`
 
-# Tips
+## Tips
 - Region mentioned in the migration configuration file should match with the region selected in the IBM Cloud CLI.
 - For Windows, once the QEMU tool is installed, append its installation path to the Windows environment variable.
 - `migration.sh`, a migration script currently supports macOS and Linux only.
 
 # FAQs
-
 ## How do I resolve image conversion failure?
-1. Run the following command manually: `qemu-img convert -f vmdk -O qcow2 image.vmdk image.qcow2`
-2. Change input format with flag `-f` as shown in the following table:
-
-| Image format | Argument for QEMU img |
-| ------------ | ------------ |
-| QCOW2 (KVM, Xen) | qcow2 |
-| QED (KVM) | qed |
-| raw | raw |
-| VDI (VirtualBox) | vdi |
-| VHD (Hyper-V) | vpc |
-| VMDK (VMware) | vmdk |
+Run the following command manually: `qemu-img convert -f vmdk -O qcow2 image.vmdk image.qcow2`
 
 ## How do I resolve image upload failure?
 Make sure that you have permission for COS (Cloud Object Storage), and upload image file with [IBM Aspera Connect](https://www.ibm.com/aspera/connect/?_ga=2.134595447.766023478.1613905997-390697858.1610435302&cm_mc_uid=45064290964216104353014&cm_mc_sid_50200000=13124331614254049945  "IBM Aspera Connect").
@@ -69,6 +59,7 @@ Make sure to have the correct value for all parameters in the `migration.cfg` fi
 How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
 
 # Known issues
-- At the moment, for RHEL 8, CentOS 8 operating systems, secondary volume migration is not supported aforementioned scripts.
-- At the moment, for all version of Debian operating system, no migration is supported at all.
-- At the moment for Ubuntu 20.04, no migration is supported at all.
+- Secondary volume for RHEL/CentOS 8 is not supported
+- The following OS is not supoprted:
+     - Debian is not supported
+     - Ubuntu 20.04
