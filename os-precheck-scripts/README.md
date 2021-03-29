@@ -34,6 +34,30 @@ To execute the script, run the following command: </br>
 
 - Execute pre-check scripts (hyperlink script files here)  as `root` user (for Linux), to behave perfectly.
 
+### FAQs ###
+#### 1. How do I resolve SSH failure? ####
+* Make sure that default repo is enabled.
+* Make sure that you have good internet connection.
+* Make sure to public keys are correctly placed to respective host.
+* Make sure that firewall is not blocking SSH connection.
+    
+#### 2. How do I resolve FSTAB check failure? ####
+* Add `nofail` to all entries in fstab file but for `/` and `/boot`.
+* OR remove all entries but `/` and `/boot`.
+
+#### 3. How do I resolve network check failure? ####
+* Set at least one network adapter to get the IP address automatically (DHCP enabled). 
+    
+#### 4. How do I resolve grub configuration failure? ####
+* Add following four parameters to `/etc/default/grub` file as it is.
+  - `(nomodeset, nofb, vga=normal, console=ttyS0)`
+
+#### 5. How do I resolve Virtio driver failure? ####
+Install Virtio drivers and its dependancies by yourself.
+
+#### 6. How do I resolve cloud-init failure? ####
+Refer to step 5 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image, install, and configure accordingly.
+
 ## Windows ##
 Resource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
 
@@ -69,52 +93,26 @@ For more information, reference the above link.
 - In windows, `migration_prep.ps1` creates duplicate directories of 'Music', 'Pictures', 'Videos' under `c:\backup\Administartor\document\`.
 - Execute pre check scripts ( hyperlink script files here ) as `Administrator` user, to behave perfectly.
 
-# FAQs
-
-## Windows
-### How do I resolve cloudbase-init download failure?
-    - Download cloudbase-init and place in `C:\temp\`  directory and re-run the script or install cloudbase-init by yourself. 
-    - [Download Cloudbase-init X64](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi "Cloudbase-init X64")
-    - [Download Cloudbase-init X86](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi "Cloudbase init X86")
+### FAQ ###
+#### 1. How do I resolve cloudbase-init download failure? ####
+- Download cloudbase-init and save it in `C:\temp\` directory and re-run the script or install cloudbase-init by yourself. 
+     - [64 bit](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi "Cloudbase-init X64")
+     - [32 bit](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi "Cloudbase init X86")
    
-### How do I resolve cloudbase-init installation check failed?
+#### 2. How do I resolve cloudbase-init installation check failed? ####
 Run msi file in `C:\temp\Cloudbase.msi` and install it by yourself. 
 
-### How do I resolve cloudbase-init configuration failure?
+#### 3. How do I resolve cloudbase-init configuration failure? ####
 Refer to step 4 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image
 
-### How do I resolve Virtio download failure?
+#### 4. How do I resolve Virtio download failure? ####
 Refer to step 3 from https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image 
 
-### How do I resolve Virtio installation failure?
+#### 5. How do I resolve Virtio installation failure? ####
 Mount and install VirtIO ISO file in `C:\temp\virtio-win.iso` and install `virtio-win-gt-x64.msi` from ISO file by yourself.
 
-### How do I resolve backup failure?
+#### 6. How do I resolve backup failure? ####
 Backup `C:\Users\Administrator\` directory to safe place for future need.
 
-### How do I resolve configure check failure?
+#### 7. How do I resolve configure check failure? ####
 Make sure to have correct value for each parameter.
-
-## Linux
-### How do I resolve SSH failure?
-* Make sure that default repo is enabled.
-* Make sure that you have good internet connection.
-* Make sure to public keys are correctly placed to respective host.
-* Make sure that firewall is not blocking SSH connection.
-    
-### How do I resolve FSTAB check failure?
-* Add `nofail` to all entries in fstab file but for `/` and `/boot`.
-* OR remove all entries but `/` and `/boot`.
-
-### How do I resolve network check failure?
-* Set at least one network adapter to get the IP address automatically (DHCP enabled). 
-    
-### How do I resolve grub configuration failure?
-* Add following four parameters to `/etc/default/grub` file as it is.
-  - `(nomodeset, nofb, vga=normal, console=ttyS0)`
-
-### How do I resolve Virtio driver failure?
-Install Virtio drivers and its dependancies by yourself.
-
-### How do I resolve cloud-init failure?
-Refer to step 5 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image, install, and configure accordingly.
