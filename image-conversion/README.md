@@ -2,7 +2,7 @@
 You can convert your VMware virtual machine (VM) to IBM Cloud® virtual server instances to import your image to IBM Cloud VPC, and then use a custom image to create new virtual server instances, using `migration.sh` script.
 This script performs following activities
 - Converts images from vmdk format to qcow2 format
-- Upload to COS bucket
+- Check for presence of qcow2 image in COS ( Client Object Storage )
 - Create custom image
 
 # Prerequisite
