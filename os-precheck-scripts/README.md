@@ -1,11 +1,12 @@
 # Precheck Scripts #
 There are a set of minimum requirements that image must meet when you migrate a virtual/guest
-machine to IBM Cloud as a custom image. More information can be found [here](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images).
-
+machine to IBM Cloud as a custom image. More information can be found at following links
+- [Importing and managing custom images](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images).
+- [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
 It is highly recommended to test the precheck scripts on a clone of the virtual/guest machine
 first before using it on a production system.
 
-## Red Hat ##
+## Linux ##
 Resource: [Creating a Linux custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image)
 
 A script written in BASH that automates some of the tasks are described in the link above.  This
@@ -29,6 +30,8 @@ active and current.
 
 To execute the script, run the following command: </br>
 ```./rhel_precheck.sh```
+
+- Execute pre check scripts ( hyperlink script files here )  as `root` user ( for linux ), to behave perfectly.
 
 ## Windows ##
 Resource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
@@ -62,4 +65,43 @@ the files to the C:\temp folder.
 - Usage ```PS C:\ .\windows_precheck.ps1```
 - The system still needs to go through Windows sysprep, device driver update, image conversion.
 For more information, reference the above link. 
+- In windows, `migration_prep.ps1` creates duplicate directories of 'Music', 'Pictures', 'Videos' under `c:\backup\Administartor\document\`.
+- Execute pre check scripts ( hyperlink script files here ) as `Administrator` user, to behave perfectly.
 
+#FAQ
+## Windows
+- How to resolve cloudbase-init download failure?
+    - Download cloudbase-init and place in `C:\temp\`  directory and re-run the script or install cloudbase-init by yourself. 
+    - [Download Cloudbase-init X64](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi "Cloudbase-init X64")
+    - [Download Cloudbase-init X86](https://cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi "Cloudbase init X86")
+- How to resolve cloudbase-init installation check failed?
+    - Run msi file in `C:\temp\Cloudbase.msi` and install it by yourself. 
+- How to resolve cloudbase-init configuration failure?
+    - Refer step number 4 from IBM cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image
+- How to resolve virtio download failure?
+    - Refer step number 3 from https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image 
+- How to resolve virtio installation failure?
+    - Mount and install VirtIO ISO file in `C:\temp\virtio-win.iso` and install `virtio-win-gt-x64.msi` from ISO file by yourself.
+- How to resolve backup failure?
+    - Backup `C:\Users\Administrator\` directory to safe place for future need.
+- How to resolve configure check failure?
+    - Make sure to have correct value for each parameter.
+
+## Linux
+- How to resolve SSH failure?
+    - Make sure that default repo is enabled.
+    - Make sure to have good internet connection
+    - Make sure to public keys are correctly placed to respective host.
+    - Make sure filewall is not blocking SSH connection.
+- How to resolve FSTAB check failure?
+    - Add nofail to all entries in fstab file but for `/` and `/boot`.
+    - OR remove all entries but `/` and `/boot`.
+- How to resolve Network check failure?
+    - Set at-least one network adapter to get IP address automatically ( DHCP enabled ). 
+- How to resolve grub configuration failure?
+    - Add following four parameters to `/etc/default/grub` file as it is.
+        - `(nomodeset, nofb, vga=normal, console=ttyS0)`
+- How to resolve virtio driver failure?
+    - Install virtio drivers and its dependancies by yourself.
+- How to resolve cloud-init failure?
+    - Refer step number 5 from IBM cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image, install and configure accordingly.
