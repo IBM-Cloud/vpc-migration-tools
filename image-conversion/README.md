@@ -20,7 +20,7 @@ This script performs following activities
 - Supported operating systems are
     - Centos 7, 8
     - Redhat 7, 8
-    - Ubuntu 16.04, 18.04, 20.04
+    - Ubuntu 16.04, 18.04
     - Windows 2012, 2012-r2, 2016
 - No space before and after `=` sign. syntax : `PARAMETER_NAME=value`
 
@@ -67,4 +67,5 @@ This script performs following activities
 
 # Known issues
 - At the moment, for RHEL 8, CentOS 8 operating systems, secondary volume migration is not supported aforementioned scripts.
-- At the moment, for Debian operating system, no migration is supported at all.
+- At the moment, for all version of Debian operating system, no migration is supported at all.
+- At the moment for Ubuntu 20.04, no migration is supported at all.
