@@ -34,7 +34,7 @@ To execute the script, run the following command: </br>
 
 - Execute pre-check scripts (hyperlink script files here)  as `root` user (for Linux), to behave perfectly.
 
-### FAQs ###
+### FAQ ###
 #### 1. How do I resolve SSH failure? ####
 * Make sure that default repo is enabled.
 * Make sure that you have good internet connection.
