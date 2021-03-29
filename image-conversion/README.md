@@ -42,7 +42,7 @@ This script performs following activities:
 - For Windows, once the QEMU tool is installed, append its installation path to the Windows environment variable.
 - `migration.sh`, a migration script currently supports macOS and Linux only.
 
-# FAQs
+# FAQ
 1. How do I resolve image conversion failure? <br>
 Run the following command manually: `qemu-img convert -f vmdk -O qcow2 image.vmdk image.qcow2`
 2. How do I resolve image upload failure? <br>
