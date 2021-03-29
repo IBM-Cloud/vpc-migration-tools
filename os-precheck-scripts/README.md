@@ -3,6 +3,7 @@ There are a set of minimum requirements that image must meet when you migrate a 
 machine to IBM Cloud as a custom image. More information can be found at following links
 - [Importing and managing custom images](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images).
 - [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
+
 It is highly recommended to test the precheck scripts on a clone of the virtual/guest machine
 first before using it on a production system.
 
@@ -14,16 +15,16 @@ script can be used if you are planning to do the migration yourself or use in co
 Cloud Migration tool.
 
 The script checks the following:
-- If the system meets the minimum supported major version (7.x)
-     - If missing, then exit.  User will need to upgrade the OS.
+- Check for minimum supported operating systems which are as follows
+     - CentOS 7, RHEL 7, Ubuntu 16.04
 - Check for virtio drivers
-     - If missing, then exit.  User will need to install the virtio driver.
+     - If missing then user will need to install the virtio driver.
 - Check for cloud-init, minimum supported version (0.7.9) and correct data source.
-     - If missing cloud-init, then install from yum repository and add the correct data sources.
+     - If missing cloud-init, then install from default repository and add the correct data sources.
      - If data sources are missing, then make a backup copy of cloud.cfg to cloud.cfg.bak and correct 
 the data source parameters.
      - If the virtual server instance is from IBM classic infrastructure and has secondary attached
-volumes, then check for NOFAIL flag.  If not present, then add NOFAIL.
+volumes ( or devices ), script will take a backup of ```/etc/fstab``` and remove entries other than ```/```, ```/boot``` and ```swap```.
 
 **NOTE:** The script does depend on yum in order to install cloud-init.  Make sure your repository is
 active and current.
