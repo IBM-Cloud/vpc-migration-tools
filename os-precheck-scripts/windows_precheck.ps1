@@ -255,7 +255,7 @@ function main() {
     $queueTable = New-Object System.Data.DataTable
     $queueTable.Columns.Add("Check",[string]) | Out-Null
     $queueTable.Columns.Add("Status",[string]) | Out-Null
-
+    
     checkAndCreateDir -strPath $DIR_TEMP;
 	$strCloudbaseInitMsiFileName = 'CloudbaseInitSetup_Stable_x64.msi';
 	$strVirtIoIsoFileName = 'virtio-win.iso';
@@ -264,7 +264,7 @@ function main() {
     $strVirtIoInstalledPath = "C:\Program Files\Virtio-Win";
     $strCloudbaseInitInstalledPath = "C:\Program Files\Cloudbase Solutions";
 	$boolIsAllowedVersion = $False;
-
+  
     ###############################################
     ################# Os Check ####################
     ###############################################

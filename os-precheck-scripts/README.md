@@ -16,7 +16,7 @@ Cloud Migration tool.
 
 The script checks the following:
 - Check for minimum supported operating systems which are as follows:
-     - CentOS 7, RHEL 7, Ubuntu 16.04
+     - CentOS 7, RHEL 7, Ubuntu 16.04, and Debian 9
 - Check for virtio drivers
      - If missing then user will need to install the Virtio driver.
 - Check for cloud-init, minimum supported version (0.7.9), and correct data source.
@@ -27,30 +27,27 @@ the data source parameters.
 volumes (or devices), script will take a backup of ```/etc/fstab``` and remove entries other than ```/```, ```/boot``` and ```swap```.
 
 **NOTE:** The script does depend on `yum` in order to install cloud-init.  Make sure your repository is
-active and current.
+current.
 
-To execute the script, run the following command: </br>
+To execute the script, run the following command as root user: </br>
 ```./rhel_precheck.sh```
-
-- Execute pre-check scripts (hyperlink script files here)  as `root` user (for Linux), to behave perfectly.
 
 ## FAQ
 1. How do I resolve SSH failure?
-* Make sure that default repo is enabled.
-* Make sure that you have good internet connection.
-* Make sure to public keys are correctly placed to respective host.
-* Make sure that firewall is not blocking SSH connection.
+   1. Make sure that default repo is enabled.
+   2. Make sure that you have good internet connection.
+   3. Make sure to public keys are correctly placed to respective host.
+   4. Make sure that firewall is not blocking SSH connection.
     
 2. How do I resolve FSTAB check failure?
-* Add `nofail` to all entries in fstab file but for `/` and `/boot`.
-* OR remove all entries but `/` and `/boot`.
+   1. Add `nofail` to all entries in fstab file but for `/` and `/boot`.
+   2. OR remove all entries but `/` and `/boot`.
 
 3. How do I resolve network check failure?
-* Set at least one network adapter to get the IP address automatically (DHCP enabled). 
+At least one network adapter is set to get the IP address automatically (DHCP enabled). 
     
 4. How do I resolve grub configuration failure?
-* Add following four parameters to `/etc/default/grub` file as it is.
-  - `(nomodeset, nofb, vga=normal, console=ttyS0)`
+Add following four parameters `(nomodeset, nofb, vga=normal, console=ttyS0)` to `/etc/default/grub` file as it is.
 
 5. How do I resolve Virtio driver failure? <br>
 Install Virtio drivers and its dependancies by yourself.
@@ -91,7 +88,7 @@ the files to the C:\temp folder.
 - The system still needs to go through Windows sysprep, device driver update, image conversion.
 For more information, reference the above link. 
 - In windows, `migration_prep.ps1` creates duplicate directories of 'Music', 'Pictures', 'Videos' under `c:\backup\Administartor\document\`.
-- Execute pre check scripts ( hyperlink script files here ) as `Administrator` user, to behave perfectly.
+- Execute powershell precheck script as `Administrator` user
 
 ## FAQ
 1. How do I resolve cloudbase-init download failure?

@@ -16,8 +16,7 @@ For more information about managing images, see [link](https://cloud.ibm.com/doc
 
 Use these custom scripts to validate the candidate guest machine.
 
-- [Redhat Precheck Script](Linux-Precheck-Srcripts/)
-- [New custom Windows Prep Script for Importing](Create-Windows-Import/)
+[OS Precheck Scripts](os-precheck-scripts/)
 
 ## Data Migration ##
 
@@ -28,7 +27,7 @@ script uses an open source utility `rsync` with the some default commands.
 
 ## Image Conversion ##
 
-If you are migrating from another hypervisor, the image needs to be in qcow2. Use this script to convert guest images from Vmware in vdmk format to qcow2. 
+If you are migrating from another hypervisor, the image needs to be in `qcow2`. Use this script to convert guest images from Vmware in vdmk format to qcow2. 
 
 [image conversion](image-conversion)
 
@@ -38,8 +37,7 @@ While there are no warranties of any kind, and there is no service or technical 
 available for these scripts from IBM support, your comments are welcomed by the maintainers
 and developers, who reserve the right to revise or remove the tools at any time. We,
 maintainers and developers, will support the scripts posted in this repository. To report 
-problems, provide suggestions or comments, please open a GitHub issue or email us at
-[email_distribution_list](mailto:blah@ibm.com?subject=[GitHub]%20VPC%20Migration%20Scripts). If the
-scripts are modified and have issues, we will do our best to assist.
+problems, provide suggestions or comments, please open a GitHub issue. If the scripts are
+modified and have issues, we will do our best to assist.
 
 <!-- A more detailed Usage or detailed explaination of the repository here -->
