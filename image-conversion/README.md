@@ -42,13 +42,11 @@ This script performs following activities:
 - `migration.sh`, a migration script currently supports macOS and Linux only.
 
 # FAQ
-1. How do I resolve image conversion failure? <br>
-Run the following command manually: `qemu-img convert -f vmdk -O qcow2 image.vmdk image.qcow2`
-2. How do I resolve image upload failure? <br>
+1. How do I resolve image upload failure? <br>
 Make sure that you have permission for COS (Cloud Object Storage), and upload image file with [IBM Aspera Connect](https://www.ibm.com/aspera/connect/?_ga=2.134595447.766023478.1613905997-390697858.1610435302&cm_mc_uid=45064290964216104353014&cm_mc_sid_50200000=13124331614254049945  "IBM Aspera Connect")
-3. How do I resolve custom image failure? <br>
+2. How do I resolve custom image failure? <br>
 Create custom image from IBM Cloud Console (IBM CLI) with uploaded converted image.
-4. How do I resolve configure check failure? <br>
+3. How do I resolve configure check failure? <br>
 Make sure to have the correct value for all parameters in the `migration.cfg` file.
 
 # Additional resources
