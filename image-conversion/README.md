@@ -54,7 +54,7 @@ How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/d
 
 # What's in progress?
 The following are not currently supported but will be supported in future releases:
-- Secondary volume for RHEL/CentOS 8 is not supported
-- Primary volume migration does not support the following operating systems:
+- Secondary volume for RHEL/CentOS 8
+- Operating system limitations on primary volume migration:
      - Debian, all versions
      - Ubuntu 20.04
