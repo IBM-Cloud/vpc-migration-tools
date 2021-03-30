@@ -39,7 +39,6 @@ This script performs following activities:
 
 ## Tips
 - Region mentioned in the migration configuration file should match with the region selected in the IBM Cloud CLI.
-- For Windows, once the QEMU tool is installed, append its installation path to the Windows environment variable.
 - `migration.sh`, a migration script currently supports macOS and Linux only.
 
 # FAQ
