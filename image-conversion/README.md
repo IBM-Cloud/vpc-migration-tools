@@ -53,8 +53,8 @@ Make sure to have the correct value for all parameters in the `migration.cfg` fi
 How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
 
 # What's in progress?
-The following resources are not currently supported but will be supported in future releases:
-- Secondary volume for RHEL/CentOS 8
-- The following operating systems:
+The following are not currently supported but will be supported in future releases:
+- Secondary volume for RHEL/CentOS 8 is not supported
+- Primary volume migration does not support the following operating systems:
      - Debian, all versions
      - Ubuntu 20.04
