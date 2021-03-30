@@ -25,7 +25,7 @@ This script performs following activities:
     - Windows 2012, 2012-r2, 2016
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
 
-## Windows Specific Guidelines
+## Windows-pecific guidelines
 - Perform the following steps only if your instance is _**Windows**_, after you have successfully executed OS pre-check scripts:
     - Network reset
         - `Windows–Network Settings -> Network & Internet -> Status -> Reset Network`
@@ -52,8 +52,9 @@ Make sure to have the correct value for all parameters in the `migration.cfg` fi
 # Additional resources
 How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
 
-# Known issues
-- Secondary volume for RHEL/CentOS 8 is not supported
-- The following OS is not supoprted:
-     - Debian all versions
+# What's in progress?
+The following resources are not currently supported but will be supported in future releases:
+- Secondary volume for RHEL/CentOS 8
+- The following operating systems:
+     - Debian, all versions
      - Ubuntu 20.04
