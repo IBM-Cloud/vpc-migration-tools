@@ -1,7 +1,7 @@
 # Overview
-You can convert your VMware virtual machine (VM) to IBM Cloud® virtual server instances to import your image to IBM Cloud VPC, and then use a custom image to create new virtual server instances, using `migration.sh` script.
+You can convert your virtual machine (VM) to IBM Cloud® virtual server instances to import your image to IBM Cloud VPC, and then use a custom image to create new virtual server instances, using `migration.sh` script.
 This script performs following activities:
-- Converts images from VMDK format to qcow2 format
+- Converts images from VMDK/VHD format to qcow2 format
 - Check for presence of qcow2 image in COS (client Object Storage)
 - Create custom image
 
@@ -21,14 +21,18 @@ This script performs following activities:
 - Supported operating systems:
     - Centos 7, 8
     - Redhat 7, 8
-    - Ubuntu 16.04, 18.04
+    - Ubuntu 16.04, 18.04, 20.04
     - Windows 2012, 2012-r2, 2016
+    - Debian 9, 10
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
 
 ## Windows-pecific guidelines
 - Perform the following steps only if your instance is _**Windows**_, after you have successfully executed OS pre-check scripts:
     - Network reset
-        - `Windows–Network Settings -> Network & Internet -> Status -> Reset Network`
+        - Windows 2012, 2012 R2
+            - `Device Manager -> Network adapters -> Right click Network Adapter -> Uninstall` (do this for all network adapters)
+        - Windows 2016
+            - `Windows–Network Settings -> Network & Internet -> Status -> Reset Network`
         - This disables network access to machine
     - System prep
         - Execute following command:
@@ -50,11 +54,9 @@ Create custom image from IBM Cloud Console (IBM CLI) with uploaded converted ima
 Make sure to have the correct value for all parameters in the `migration.cfg` file.
 
 # Additional resources
-How-to guide for [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
+How-to guide for [Migrating VMDK/VHD images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmdk-vhd-images)
 
 # What's in progress?
 The following are not currently supported but will be supported in future releases:
-- Secondary volume for RHEL/CentOS 8
-- Operating system limitations on primary volume migration:
-     - Debian, all versions
-     - Ubuntu 20.04
+- Secondary volume for RHEL 8, CentOS 8, Ubuntu 20.04
+
