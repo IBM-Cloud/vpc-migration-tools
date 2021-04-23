@@ -29,11 +29,13 @@ This script performs following activities:
 ## Windows-pecific guidelines
 - Perform the following steps only if your instance is _**Windows**_, after you have successfully executed OS pre-check scripts:
     - Network reset
+        - This disables network access to machine
         - Windows 2012, 2012 R2
-            - `Device Manager -> Network adapters -> Right click Network Adapter -> Uninstall` (do this for all network adapters)
+            - Run these commands in `Command Prompt`
+                `netsh winsock reset`
+                `netsh int ip reset c:\resetlog.txt`
         - Windows 2016
             - `Windows–Network Settings -> Network & Internet -> Status -> Reset Network`
-        - This disables network access to machine
     - System prep
         - Execute following command:
             - `C:\Windows\System32\Sysprep\Sysprep.exe /oobe/generalize /shutdown "/unattend:C:\ProgramFiles\CloudbaseSolutions\Cloudbase-Init\conf\Unattend.xml"`
