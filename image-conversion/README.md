@@ -21,7 +21,7 @@ This script performs following activities:
 - Supported operating systems:
     - Centos 7, 8
     - Redhat 7, 8
-    - Ubuntu 16.04, 18.04, 20.04
+    - Ubuntu 16.04, 18.04
     - Windows 2012, 2012-r2, 2016
     - Debian 9, 10
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
@@ -60,5 +60,6 @@ How-to guide for [Migrating VMDK/VHD images to VPC](https://cloud.ibm.com/docs/c
 
 # What's in progress?
 The following are not currently supported but will be supported in future releases:
+- Operating systems not supported Ubuntu 20.04
 - Secondary volume for RHEL 8, CentOS 8, Ubuntu 20.04
 
