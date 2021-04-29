@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------------------------------------------------------
+# Script Name :  windows_precheck.ps1   
+# This script will check all pre-requisites for 
+# Virtio Driver, Cloud-Init, Administrator files backup
+#----------------------------------------------------------------------------------------------------------------------
+
 function isValidOs() {
 	try {
 		$boolIsValid = $False;
@@ -255,7 +261,7 @@ function main() {
     $queueTable = New-Object System.Data.DataTable
     $queueTable.Columns.Add("Check",[string]) | Out-Null
     $queueTable.Columns.Add("Status",[string]) | Out-Null
-    
+
     checkAndCreateDir -strPath $DIR_TEMP;
 	$strCloudbaseInitMsiFileName = 'CloudbaseInitSetup_Stable_x64.msi';
 	$strVirtIoIsoFileName = 'virtio-win.iso';
@@ -264,7 +270,7 @@ function main() {
     $strVirtIoInstalledPath = "C:\Program Files\Virtio-Win";
     $strCloudbaseInitInstalledPath = "C:\Program Files\Cloudbase Solutions";
 	$boolIsAllowedVersion = $False;
-  
+
     ###############################################
     ################# Os Check ####################
     ###############################################
@@ -517,4 +523,4 @@ plugins=cloudbaseinit.plugins.common.mtu.MTUPlugin,
 # Script execution will start from here.
 # Clear-host;
 $ErrorActionPreference = 'Stop'; 
-main;
+main;     

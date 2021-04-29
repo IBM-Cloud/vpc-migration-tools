@@ -174,14 +174,13 @@ check_config () {
 	failure="false"
 	logInfo "Checking $CONFIGFILE file"
 	if [[ ! -z "$REGION" ]] && [[ ! -z "$BUCKET" ]] && [[ ! -z "$IMAGE_FILENAME" ]] && [[ ! -z "$RESOURCE_GROUP" ]];then 
-		REGION=`echo "${!REGION}"`
 		if [[ ! -z "$REGION" ]] && [[ ! -z "$OS_NAME" ]] && [[ ! -z "$OS_VERSION" ]] ;then
-                	failure="false"
+            failure="false"
 			ibmcloud resource group $RESOURCE_GROUP >> tmprg.txt	
-	        	RESOURCE_GROUP_ID=`cat tmprg.txt | grep "ID:" | grep -v "Account ID:" | awk '{print $2}'`		
+	        RESOURCE_GROUP_ID=`cat tmprg.txt | grep "ID:" | grep -v "Account ID:" | awk '{print $2}'`		
 			rm -rf tmprg.txt
-        	else
-                	failure="true"
+        else
+            failure="true"
 		fi
 	else
 		failure="true"
@@ -197,21 +196,23 @@ check_config () {
 load_config () {
 	logInfo "$CONFIGFILE loading..."
 	source "$CONFIGFILE"
+	check_credential
 	check_config
 }
 # The following function will convert vhd/vmdk to qcow2 format.
 convert_to_qcow2 () {
 	echo "qemu-img convert -f $format -O $dstformat -o cluster_size=512k $IMAGE_FILENAME $destinationfilename"
-        if qemu-img convert -f $format -O $dstformat -o cluster_size=512k $IMAGE_FILENAME $destinationfilename
+        if qemu-img convert -p -f $format -O $dstformat -o cluster_size=512k $IMAGE_FILENAME $destinationfilename
         then
-             failure="false"
+            failure="false"
         else
-             failure="true"
+            failure="true"
         fi
         if [ $failure = false ] ; then
-                passed "Image conversion successfull"
+            passed "Image conversion successfull"
         else
-                failed "Image conversion failed"
+            failed "Image conversion failed"
+            exit 1
         fi
 
 }
@@ -221,10 +222,10 @@ convert_image () {
 	srcpath=`dirname "$IMAGE_FILENAME"`
 	srcfile=$(basename "$IMAGE_FILENAME")
 	if [[ "$srcpath" == *"."* ]];then
-        	path=""
+        path=""
 	else
-        	tmp="/" 
-        	path="$srcpath$tmp"
+        tmp="/" 
+        path="$srcpath$tmp"
 	fi
 	sourcefilename="${srcfile%.*}"
 	srcformat="${srcfile##*.}"
@@ -262,13 +263,54 @@ check_object () {
 	upload_object=`basename $destinationfilename`
 	objectstatus=`ibmcloud cos objects --bucket "$BUCKET" --prefix "$upload_object" | grep "$upload_object" | awk '{print $1}'`
 }
+
 # The following function will create custom image with uploaded qcow2 file.
-create_custom_image () {
+create_custom_image (){
+	customimgname=$1
+	imgloc=$2
+	osname=$3
+    RESOURCE_GROUP_ID=$4 
+    tmpfilename=$5
+    action=$6
+
+	if [[ "$action" == "create" ]];then
+	    echo "ibmcloud is image-create $customimgname  --file $imgloc --os-name $osname --resource-group-id $RESOURCE_GROUP_ID"
+        ibmcloud is image-create $customimgname  --file $imgloc --os-name $osname --resource-group-id $RESOURCE_GROUP_ID >> $tmpfilename.txt
+        imageid=`cat $tmpfilename.txt | grep ID | awk '{print $2}'`
+    else
+	    imageid=$action
+    fi
+    imgstatus=`ibmcloud is image $imageid | grep Status | awk '{print $2}'`
+    while [[ "$imgstatus" == "pending" ]]
+    do
+        logInfo "Creating Custom Image in progess..."
+		logInfo "Next update in 40 Seconds"
+        imgstatus=`ibmcloud is image $imageid | grep Status | awk '{print $2}'`
+        sleep 40
+    done
+    if [[ "$imgstatus" == "available" ]];then
+        failure="false"
+    else
+        failure="true"
+    fi
+    if [ $failure = false ] ; then
+        passed "Create Custom image successfull"
+        logInfo "Custom Image Name: $customimgname"
+        logInfo "Custom Image Id: $imageid"
+        rm -rf $tmpfilename.txt
+    else
+        failed "Create Custom image failed"
+    fi 
+}
+
+# The following function will create custom image with uploaded qcow2 file.
+check_custom_image () {
 	failure="false"
-        customimgname="${destinationfilename%.*}"
+    customimgname="${destinationfilename%.*}"
 	customimgname=`basename $customimgname`	
 	customimgname="${customimgname//_/-}"
 	customimgname="${customimgname//./-}"
+    tmpfilename=$customimgname
 	customimgname="$customimgname-$(date +%y%m%d%H%M)"
 	OS_VERSION="${OS_VERSION//./-}"
 	if [[ "$OS_NAME" == "redhat" ]];then
@@ -278,39 +320,70 @@ create_custom_image () {
 	fi
 	osname="$OS_NAME-$OS_VERSION-amd64"
 	imgloc="cos://$REGION/$BUCKET/$upload_object"
-	echo $imgloc
+	#echo $imgloc
 	customimgname=`echo $customimgname | tr '[:upper:]' '[:lower:]'`
 	osname=`echo $osname | tr '[:upper:]' '[:lower:]'`
-	echo "ibmcloud is image-create $customimgname  --file $imgloc --os-name $osname --resource-group-id $RESOURCE_GROUP_ID"
-	ibmcloud is image-create $customimgname  --file $imgloc --os-name $osname --resource-group-id $RESOURCE_GROUP_ID >> tmpimg.txt
-	imageid=`cat tmpimg.txt | grep ID | awk '{print $2}'`
-	rm -rf tmpimg.txt
-	if [[ ! -z "$imageid" ]]
-	then
-		imgstatus=`ibmcloud is image $imageid | grep Status | awk '{print $2}'`
-		while [[ "$imgstatus" == "pending" ]]
-		do
-			logInfo "Creating Custom Image in progess..."
-			imgstatus=`ibmcloud is image $imageid | grep Status | awk '{print $2}'`
-			sleep 10
-		done
-		if [[ "$imgstatus" == "available" ]]
-		then
-			failure="false"
-		else
-			failure="true"
-		fi
-	else
-        	failure="true"
-	fi
-	if [ $failure = false ] ; then
-                passed "Create Custom image successfull"
-				logInfo "Custom Image Name: $customimgname" 
-				logInfo "Custom Image Id: $imageid"
+        if [[ ! -f "$tmpfilename.txt" ]];then
+	        create_custom_image $customimgname $imgloc $osname $RESOURCE_GROUP_ID $tmpfilename create
         else
-                failed "Create Custom image failed"
-        fi 
+			question "Are you re-running the migration script after failure"
+			read userinput
+			if [[ "$userinput" == "y" ]];then
+				imageid=`cat $tmpfilename.txt | grep ID | awk '{print $2}'`
+                if [[ ! -z "$imageid" ]];then
+					create_custom_image $customimgname $imgloc $osname $RESOURCE_GROUP_ID $tmpfilename $imageid
+				else
+					rm -rf $tmpfilename.txt
+					create_custom_image $customimgname $imgloc $osname $RESOURCE_GROUP_ID $tmpfilename create
+				fi
+			else
+				logInfo "Please change image name and try again"
+			fi
+		fi
 }
+# The following function will check whether region in config file and region configured with credentails.
+check_credential () {
+credential_region=`ibmcloud cos config list | grep "Default Region" | awk '{print $3}'`
+REGION=`echo "${!REGION}"`
+	if ibmcloud >/dev/null 2>&1 ;then
+        failure=false
+    else
+        failure=true
+        error "ibmcloud cli not found"
+        exit 1
+    fi
+	if [[ "$REGION" == "$credential_region" ]];then
+		failure=false
+	else
+		failure=true
+		error "Please configure ibm cloud cli login with same region as config file"
+	fi
+    if ibmcloud resource groups >/dev/null 2>&1 ;then
+		failure=false	
+	else
+		error "Not able get Resource Group details"
+		failure=true
+	fi	
+	if ibmcloud cos objects --bucket "$BUCKET" >/dev/null 2>&1 ;then
+		failure=false
+	else
+		error "Not able get COS object details"
+                failure=true
+	fi
+	if ibmcloud is images >/dev/null 2>&1 ;then
+		failure=false
+	else
+		error "Not able get custom image details"
+                failure=true
+	fi
+	if [[ "$failure" == "false" ]];then
+		passed "Credentail Check"
+	else
+		failed "Credentail Check"
+		exit 1
+	fi
+}
+
 
 #----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------   SCRIPT START POINT  ------------------------------------------------------------
@@ -321,11 +394,14 @@ sleep 3s;
 welcome_note "This is a Migration scritp will help to convert image, upload image to cos, creates custom image and finally create vpc gen2 vsi with custom image."
 echo -e "\n"
 sleep 2s;
-heading "1. Checking Configuration File"
+
+#------------------------------------------ Check Config Starts here ---------------------------------------------
+heading "1. Checking Configuration File, IBMCloud cli and Permissions "
 echo -e "\n"
 load_config
 echo -e "\n"
 sleep 2s;
+#------------------------------------------ Check Config Ends here ---------------------------------------------
 #------------------------------------------ Image Conversion Scritp Starts here ---------------------------------------------
 heading "2. Converting Image"
 convert_image
@@ -344,12 +420,13 @@ if [[ "$userinput" == "y" ]];then
 	then
 #----------------------------------------- Image Conversion Script Ends here ------------------------------------------------
 #----------------------------------------- Create Custom Image Script Starts here -------------------------------------------
-		heading "4. Creating Custom image"
-		sleep 2s;
-		create_custom_image
+heading "4. Creating Custom image"
+sleep 2s;
+check_custom_image
 #----------------------------------------- Create Custom Image Script Ends here ---------------------------------------------
 	else
 		error " Object $upload_object Not found in $BUCKET COS bucket, Please make sure region set with login credential and region in config are same. And please try-again."
+		failed "Image (qcow2) not found in COS"
 	fi
 else
 	logInfo "Please the run the script again, once upload is completed"
