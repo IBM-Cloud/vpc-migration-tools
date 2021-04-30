@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 #----------------------------------------------------------------------------------------------------------------------
-# Script Name : pre-check.sh     
+# Script Name :  linux_precheck.sh     
 # Prepared By : Vikash.Kumar.Shrivastva@ibm.com
 # Create Date : 02 Nov 2020
 # Version: 1.0
@@ -594,24 +594,21 @@ check_cloud_init (){
     fi
     echo -e "\n\n"
 }
-# The following function will check for the secondary drives that is not having 'nofail' option in
-# /ets/fstab configuration file. It will update the configuration to have the 'nofail' option in it.
-check_nofail_secondary () {
+# The following function will check for the secondary drives in /ets/fstab configuration file. 
+check_secondary () {
     failure=false
     filepath="/etc/fstab"
-    secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" && $3 != "swap"  {print $1}'));
+    secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
     if [ -z $secondary_volumes ]; then
         passed "Fstab file does not have enties apart from OS partitions in $filepath and expected configuration"
     else
-        # Ensure secondary drives in /etc/fstab has 'nofail' option
         logInfo "Taking backup of $filepath file to $filepath-backup "
         cp -avf "$filepath" "$filepath-backup"
-        fail_mounts=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" && $3 != "swap" && $4 !~ "nofail" {print $1}'))
+        fail_mounts=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'))
         for i in "${fail_mounts[@]}"
         do
             failure=true
             mark=$i
-            error "Mount $mark does not have 'nofail' option in $filepath"
             search=`grep "^$mark" "$filepath" 2> /dev/null`
             mark=`basename "$mark"`
             if sed -i "/$mark/d" $filepath 2> /dev/null
@@ -623,7 +620,7 @@ check_nofail_secondary () {
                     error "Not able to remove $mark from $filepath"
             fi
         done
-        secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" && $3 != "swap"  {print $1}'));
+        secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
         if [ $failure = false ] && [[ -z $secondary_volumes ]]; then
             passed "Fstab file does not have enties apart from OS partitions in $filepath"
         else
@@ -842,7 +839,7 @@ check_and_install_drivers
 #-------------------------------- Checking Virtio Drivers Ends here --------------------------------
 #-------------------------------- Checking FS Tab Starts here --------------------------------------
 heading "4. FS Tab Check"
-check_nofail_secondary
+check_secondary
 #-------------------------------- Checking FS Tab Ends here ----------------------------------------
 #-------------------------------- Checking Disk Size  Script starts here ---------------------------
 check_disk_size
