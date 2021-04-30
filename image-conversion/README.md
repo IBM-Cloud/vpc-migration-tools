@@ -10,8 +10,9 @@ This script performs following activities:
 
 # Usage
 ## Configuration
-- `migration.cfg` contains required configuration for image conversion.
-- All parameters in `migration.cfg` are mandatory. It must have correct values. Any incorrect value might result in an error or unexpected behavior.
+`migration.cfg` contains the require parameters that is needed by `migration.sh` for the image conversion.
+
+All parameters in `migration.cfg` are mandatory. It must have correct values. Any incorrect value might result in an error or unexpected behavior.
 - `REGION`- A region name of a resource. e.g. `tokyo`
 - `BUCKET`- An IBM's client Object Storage bucket name.
 - `IMAGE_FILENAME` - Absolute path of image with VMDK/VHD format.
