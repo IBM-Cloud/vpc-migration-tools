@@ -57,10 +57,10 @@ Create custom image from IBM Cloud Console (IBM CLI) with uploaded converted ima
 Make sure to have the correct value for all parameters in the `migration.cfg` file.
 
 # Additional resources
-How-to guide for [Migrating VMDK/VHD images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmdk-vhd-images)
+How-to guide for [Migrating VMDK or VHD images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vpc)
 
 # What's in progress?
 The following are not currently supported but will be supported in future releases:
-- Operating systems not supported Ubuntu 20.04
+- Ubuntu 20.04 operating system
 - Secondary volume for RHEL 8, CentOS 8, Ubuntu 20.04
 
