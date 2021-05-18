@@ -1,9 +1,16 @@
-#!/bin/sh
-# USAGE			: ./<filename> [--help]
+#!/bin/bash
+# USAGE			: bash ./<filename> [--help] OR bash ./<filename> [--debug] [--skip_disk_check]
 # DESCRIPTION	: This an automation and wrapper script to execute rsync command.
-# OPTIONS		: --help : if it is used, it will display list of all options supported by rsync.
+# OPTIONS		: --help : Script will display list of all options supported by rsync.
+#				: --debug : Script will display rsync command being executed.
+#				: --skip_disk_check : Script will not perfom disk check of destination.			
 # AUTHOR		: Rahul Ippar, Rahul.Ippar@ibm.com
 # COMPANY		: IBM
+
+# Function to display usage of script
+function displayUsage() {
+	echo "USAGE : bash ./${0##*/} [--help] OR ./${0##*/} [--debug] [--skip_disk_check]"
+}
 
 # Function to ask for multiple inputs
 function getInput() {
@@ -100,23 +107,98 @@ function validateIpAddress() {
 	return $intIsValidIp
 }
 
+function validateHostname() {
+	local strHostname=$1
+    local intIsValidHostname=1
+
+    if [[ $strHostname =~ ^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$ ]];
+    then
+        intIsValidHostname=0
+    fi
+
+    return $intIsValidHostname
+}
+
 # Function to check empty string for host name or ip address
 function validateIpAddressOrHostName() {
+
 	local intIsValid=0
+
 	validateIpAddress $strRemoteHost
 	local intIsValidIp=$?
+
+	validateHostname $strRemoteHost;
+	local intIsValidHostname=$?
 
 	if [[ -z "$strRemoteHost" ]];
 	then
 		intIsValid=1
 		echo "IP address or hostname cannot be empty.";
-	elif [[ 1 -eq "$intIsValidIp" ]] || [[ -z "$strRemoteHost" ]];
+	elif [[ 1 -eq "$intIsValidIp" ]] || [[ 1 -eq $intIsValidHostname ]];
 	then
 		intIsValid=1
-		echo "Invalid IP address.";
+		echo "Invalid IP address or hostname.";
 	fi
 
 	return $intIsValid
+}
+
+# Function to validate memory space at destination machine
+function validateDiskSpace() {
+	local strFileSystem=""
+
+	intSourceDataSize=$( du -s "$strSourcePath" | awk '{ print $1 }' )
+
+	if ssh root@$strRemoteHost "[ -d $strDestinationPath ]"; then
+		# If file/directory exist then get its file system
+		strFileSystem=$( ssh "$strRemoteHost" df -T "$strDestinationPath" | awk 'END {print $1}' )
+	else
+		# If file/directory does not exist then get its parent's file system
+		strParentDir=$( ssh "$strRemoteHost" dirname "$strDestinationPath" )
+		strFileSystem=$( ssh "$strRemoteHost" df -T "$strParentDir" | awk 'END {print $1}' )
+	fi
+
+	intDestinationFreeSpace=$( ssh "$strRemoteHost" df "$strFileSystem" | awk 'END { print $4 }' )
+
+	if [ $intDestinationFreeSpace -lt $intSourceDataSize ];
+	then
+		echo "Not enough disk space at $strDestinationPath@$strRemoteHost to copy data."
+		exit 0;
+	fi
+}
+
+# Function to check remote host is reachable or not
+function validateRemoteHost() {
+	local intIsValid=0
+
+	if [ "Linux" == $(getOs) ];
+	then
+		strPingResponse=$( ping -c 1 $strRemoteHost | grep -i 'received' | awk -F',' '{ print $2}' | awk '{ print $1}' ) #Linux
+	elif [ "Cygwin" == $(getOs) ];
+	then
+		strPingResponse=$( ping  $strRemoteHost | grep -i 'received' | awk -F',' '{ print $2}' | awk '{ print $3}' ) #Windows
+	else
+		echo "OS is not supported."
+		exit 0;
+	fi
+
+	strPingError1='Name or service not known'
+	strPingError2='Ping request could not find host'
+	
+	if [[ "$strPingResponse" == *"$strPingError1"* ]]; then
+		intIsValid=1
+		echo "$strRemoteHost : Name or service not known."
+	elif [[ "$strPingResponse" == *"$strPingError2"* ]]; then
+		intIsValid=1
+		echo "Could not find host $strRemoteHost"
+	elif [[ "$strPingResponse" == "0" || -z "$strPingResponse" ]]; then
+		intIsValid=1
+		echo "Host $strRemoteHost not reachable."
+	fi
+	
+	if [[ 1 -eq $intIsValid ]]; then
+		exit 0;
+	fi
 }
 
 # Function to get default options for rsync command
@@ -176,34 +258,66 @@ function execute() {
 	fi
 
 	strOptions="$(getDefaultOptions)$strCustomOptions"
-	# Uncomment following statement for debugging or to display rsync command being executed.
-	# echo "rsync $strOptions $strSourcePath $strUsername@$strRemoteHost:$strDestinationPath"
-	echo "Executing rsync command..."
-	eval "rsync $strOptions $strSourcePath $strUsername@$strRemoteHost:$strDestinationPath"
+
+	if [ 0 -eq $intIsDebug ];
+	then
+		echo "rsync $strOptions \"$strSourcePath\" \"$strUsername@$strRemoteHost:$strDestinationPath\""
+	fi
+
+	eval "rsync $strOptions \"$strSourcePath\" \"$strUsername@$strRemoteHost:$strDestinationPath\""
 }
 
 # Function to display all help options of rsync command
-function showHelp() {
-	strOption=$1
+function applyOptions() {
 
-	if [[ '--help' == ${strOption,,} ]];
-	then
+	if [[ "$#" -gt 2 ]]; then
+		echo "Error: excess number of parameters."
+		displayUsage
+		exit 0;
+	fi
+
+	intIsDebug=1 # 0 = display debug info, 1= do not display debug info
+	intIsSkipDiskCheck=1 # 0 = skip 1,  = Do not skip
+	intIsHelp=1 # 0 = Yes, 1 = No
+
+	local count=1;
+	for strOption in "$@" 
+	do
+		case ${strOption,,} in
+			--help) intIsHelp=0
+				;;
+			--debug) intIsDebug=0
+				;;
+			--skip_disk_check) intIsSkipDiskCheck=0
+				;;
+			*) echo "Type '${0##*/} --help' to display all rsync options."
+				displayUsage
+  			   ;;
+		esac
+		count=$((count + 1));
+	done
+
+	if [[ 0 -eq $intIsHelp ]]; then
 		execute '--help'
-		exit
-	elif [[ -n $strOption ]];
-	then
-		echo "Type '${0##*/} --help' to display all rsync options."
-		exit
+		exit 0;
 	fi
 }
 
 # Main function to kickstart execution.
 function main() {
-	showHelp $1
+	applyOptions $@
 	getInput
+	validateRemoteHost
+
+ 	# Validate memory space only if its Linux OS and skip_disk_check flag is not passed
+	if [[ 1 -eq $intIsSkipDiskCheck && "Linux" == $(getOs) ]];
+	then
+		validateDiskSpace
+	fi
+
 	execute "$strCustomOptions" "$strSourcePath" "$strDestinationPath" "$strRemoteHost" "$strUsername"
 }
 
 # Execution will start from here.
-main $1
+main $@
 # End of the script.
