@@ -23,7 +23,7 @@ All parameters in `migration.cfg` are mandatory. It must have correct values. An
 - Supported operating systems:
     - Centos 7, 8
     - Redhat 7, 8
-    - Ubuntu 16.04, 18.04
+    - Ubuntu 16.04, 18.04, 20.04
     - Windows 2012, 2012-r2, 2016
     - Debian 9, 10
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
