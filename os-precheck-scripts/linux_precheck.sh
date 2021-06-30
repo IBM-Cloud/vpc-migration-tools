@@ -58,7 +58,8 @@ declare -a TASKS=(
     "FS Tab Check"
     "Disk Size Check"
     "Check SSH Installation and Configuration"
-    "Check for DHCP"	
+    "Check for DHCP"
+    "Check libguestfs Installation (Optional)"	
 )
 # List of Checks. This variable will hold the number of check the script will perform.
 declare -A DISTRO_LIST=(
@@ -599,7 +600,7 @@ check_secondary () {
     filepath="/etc/fstab"
     secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
     if [ -z $secondary_volumes ]; then
-        passed "Fstab file does not have enties apart from OS partitions in $filepath and expected configuration"
+        passed "Fstab file does not have entries apart from OS partitions in $filepath and expected configuration"
     else
         logInfo "Taking backup of $filepath file to $filepath-backup "
         cp -avf "$filepath" "$filepath-backup"
@@ -621,9 +622,9 @@ check_secondary () {
         done
         secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
         if [ $failure = false ] && [[ -z $secondary_volumes ]]; then
-            passed "Fstab file does not have enties apart from OS partitions in $filepath"
+            passed "Fstab file does not have entries apart from OS partitions in $filepath"
         else
-            failed "Fstab file does have enties apart from OS partitions in $filepath"
+            failed "Fstab file does have entries apart from OS partitions in $filepath"
         fi
     fi
     echo -e "\n\n"
@@ -830,19 +831,23 @@ check_install_and_service_libguestfs-virtd(){
 	    else
     		error "Package is NOT installed!"
     		logInfo "Installing libguestfs-tools"
-    		if [[	`yum -y install libguestfs-tools` ]];then
-			    logInfo "Installation successfull"
-			    passed "libguestfs-tools installed"
-    			if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
-        			logInfo "libvirtd is running"
-        			systemctl enable libvirtd
-				    passed "libvirtd running"
-    			else
-				    logInfo "Starting libvirtd"
-        			systemctl start libvirtd
-        			systemctl enable libvirtd
-				    passed "libvirtd running"
-    			fi
+    		if [[	`yum update -y && yum -y install libguestfs-tools` ]];then
+                if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
+			        logInfo "Installation successfull"
+			        passed "libguestfs-tools installed"
+    			    if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
+        			    logInfo "libvirtd is running"
+        			    systemctl enable libvirtd
+				        passed "libvirtd running"
+    			    else
+				        logInfo "Starting libvirtd"
+        			    systemctl start libvirtd
+        			    systemctl enable libvirtd
+				        passed "libvirtd running"
+    			    fi
+                else
+                    failed "Installed Failed"
+                fi
 		    else
 			    failed "Installed Failed"
 		    fi
@@ -855,8 +860,13 @@ check_install_and_service_libguestfs-virtd(){
 	    else
     		error "Package  is NOT installed!"
     		if [[ `apt-get update -y && apt-get install libguestfs-tools -y` ]];then
-			    logInfo "Installation successfull"
-                passed "libguestfs-tools installed"
+                packstatus=`dpkg --get-selections | grep libguestfs-tools | awk '{print $2}'`
+	            if [[ "$packstatus" = "install" ]]; then
+			        logInfo "Installation successfull"
+                    passed "libguestfs-tools installed"
+                else
+                    failed "Installation Failed"
+                fi
 		    else
 			    failed "Installation Failed"
 		    fi 
