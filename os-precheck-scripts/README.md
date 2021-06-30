@@ -27,7 +27,7 @@ The script checks the following:
 the data source parameters.
      - If the virtual server instance is from IBM Cloud classic infrastructure and has secondary attached
 volumes (or devices), script will take a backup of ```/etc/fstab``` and remove entries other than ```/```, ```/boot``` and ```swap```.
-     - (Optional Installation for secondary volume migration) Prompt to user (y/n) for checking whether guestfs library installation can be done as part of pre-check or not.
+- Guestfs library is an optional Installation for secondary volume migration, User will be prompted (y/n), User can opt 'y' for following linux **Centos/Redhat 8, Ubuntu 18.04 and 20.04 and Debian 9 and 10**.
 
 **NOTE:** The script does depend on `yum` and `apt-get` in order to install cloud-init.  Make sure your repository is
 current.
