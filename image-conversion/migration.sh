@@ -38,7 +38,7 @@ FAIL="[ ${RED}FAILURE${NC} ]"
 OK="[ ${GREEN}OK${NC} ]"
 # This is a status variable that will hold the success and failure of a task.
 failure=false
-# This variables are used for ibm loaction and there corresponding short keyword
+# This variables are used for ibm location and there corresponding short keyword
 sydney="au-syd"
 frankfurt="eu-de"
 london="eu-gb"
