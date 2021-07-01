@@ -58,7 +58,8 @@ declare -a TASKS=(
     "FS Tab Check"
     "Disk Size Check"
     "Check SSH Installation and Configuration"
-    "Check for DHCP"	
+    "Check for DHCP"
+    "Check libguestfs Installation (Optional)"	
 )
 # List of Checks. This variable will hold the number of check the script will perform.
 declare -A DISTRO_LIST=(
@@ -299,13 +300,13 @@ check_os_distro () {
 # and will print the passed or failed messages correspondingly.
 check_kernel_param () {
 	if grep -q "nomodeset nofb vga=normal console=ttyS0" "/etc/default/grub"; then
-        	passed "Already Kernel Parameter configured"
+        passed "Already Kernel Parameter configured"
 	else
-        	error "Kernel Parameter Not configured"
-        	logInfo "Taking backup for grub file"
-        	cp=`cp -avf /etc/default/grub /etc/default/grub-backup  2> /dev/null` 
+        error "Kernel Parameter Not configured"
+        logInfo "Taking backup for grub file"
+        cp=`cp -avf /etc/default/grub /etc/default/grub-backup  2> /dev/null` 
 		logInfo "Adding Kernel Parameter in grub file" 
-        	sed -i '/GRUB_CMDLINE_LINUX/d' /etc/default/grub 
+        sed -i '/GRUB_CMDLINE_LINUX/d' /etc/default/grub 
 		if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
 			echo 'GRUB_CMDLINE_LINUX="crashkernel=auto spectre_v2=retpoline rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet nomodeset nofb vga=normal console=ttyS0"' >> /etc/default/grub
 		elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
@@ -313,12 +314,12 @@ check_kernel_param () {
 			echo 'GRUB_CMDLINE_LINUX="find_preseed=/preseed.cfg noprompt nomodeset nofb vga=normal console=ttyS0"' >> /etc/default/grub
 		fi
 		logInfo "Re-checking Kernel Parameter"
-        	if grep -q "nomodeset nofb vga=normal console=ttyS0" "/etc/default/grub"; then
+        if grep -q "nomodeset nofb vga=normal console=ttyS0" "/etc/default/grub"; then
                 	passed "Kernel Parameter configured"
 		else
 			failed "Failed to configure Kernel Parameter"
-        	fi
-fi
+        fi
+    fi
 }
 
 check_virtio_drivers_dependencies()
@@ -448,63 +449,62 @@ preload_virtio_driver()
 # and will print the passed or failed messages correspondingly.
 check_virtio_drivers ()
 {
-NET=`grep -i virtio /boot/config-$(uname -r) | grep  "CONFIG_VIRTIO_NET="`
-BLK=`grep -i virtio /boot/config-$(uname -r) | grep  "CONFIG_VIRTIO_BLK="`
-NETSTATUS=${NET: -1}
-BLKSTATUS=${BLK: -1}
-if [[ "$BLKSTATUS"  == "m" ]] && [[ "$NETSTATUS" ==  "m" ]];then
-    passed "Virtio Module Installed"
-    DistroVer=`echo $DISTRO_VERSION | cut -f1 -d"."`
-    if [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        failure=$(check_virtio_drivers_dependencies)
-        if [[ "$failure" == "false" ]];then
-        	success "Virtio Module loaded"
-        else
-        	error "Virtio Module Not Loaded"
-			logInfo "Attempting to load Virtio Module"
-            preload_virtio_driver
-        fi
-        #re-checking
-        failure=$(check_virtio_drivers_dependencies)
-        if [[ "$failure" == "false" ]];then
-			failure=false
-			passed "Virtio Module loaded"
-		else
-			failure=true
-			failed "Virtio Module Not Loaded"
-		fi
-    elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
-	    failure=false
-	    failure=$(check_virtio_drivers_dependencies)
-	    if [[ "$failure" == "false" ]];then
-            failure=false
-            passed "Virtio Module loaded"
-        else
-            failure=true
-            failed "Virtio Module Not Loaded"
-        fi
-	
-    elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
-    	failure=$(check_virtio_drivers_dependencies)
-        if [[ "$failure" == "false" ]];then
-		    failure=false
-			passed "Virtio Module loaded"
-		else
-			failure=true
-			failed "Virtio Module Not Loaded"
-		fi
-	else
-		failure=true
-     	failed "Not Support OS Distribution"
-	fi
-elif [[ "$BLKSTATUS"  = "y" ]] && [[ "$NETSTATUS" =  "y" ]];then
+    NET=`grep -i virtio /boot/config-$(uname -r) | grep  "CONFIG_VIRTIO_NET="`
+    BLK=`grep -i virtio /boot/config-$(uname -r) | grep  "CONFIG_VIRTIO_BLK="`
+    NETSTATUS=${NET: -1}
+    BLKSTATUS=${BLK: -1}
+    if [[ "$BLKSTATUS"  == "m" ]] && [[ "$NETSTATUS" ==  "m" ]];then
+        passed "Virtio Module Installed"
+        DistroVer=`echo $DISTRO_VERSION | cut -f1 -d"."`
+        if [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
+            failure=$(check_virtio_drivers_dependencies)
+            if [[ "$failure" == "false" ]];then
+        	    success "Virtio Module loaded"
+            else
+        	    error "Virtio Module Not Loaded"
+			    logInfo "Attempting to load Virtio Module"
+                preload_virtio_driver
+            fi
+            #re-checking
+            failure=$(check_virtio_drivers_dependencies)
+            if [[ "$failure" == "false" ]];then
+			    failure=false
+			    passed "Virtio Module loaded"
+		    else
+			    failure=true
+			    failed "Virtio Module Not Loaded"
+		    fi
+        elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
+	        failure=false
+	        failure=$(check_virtio_drivers_dependencies)
+	        if [[ "$failure" == "false" ]];then
+                failure=false
+                passed "Virtio Module loaded"
+            else
+                failure=true
+                failed "Virtio Module Not Loaded"
+            fi
+        elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
+    	    failure=$(check_virtio_drivers_dependencies)
+            if [[ "$failure" == "false" ]];then
+		        failure=false
+			    passed "Virtio Module loaded"
+		    else
+			    failure=true
+			    failed "Virtio Module Not Loaded"
+		    fi
+	    else
+		    failure=true
+     	    failed "Not Support OS Distribution"
+	    fi
+    elif [[ "$BLKSTATUS"  = "y" ]] && [[ "$NETSTATUS" =  "y" ]];then
 		failure=false
      	passed "Virtio Module Installed and Loaded"
-else	
+    else	
 		failure=true
 		error "Re-build kernel with latest version, "
      	failed "Virtio Module check failed"     		
-fi
+    fi
 }
 # The following function will check cloud-init configuration. 
 # if some configurations are missing then 
@@ -527,22 +527,22 @@ check_cloud_init_config (){
 	    passed "datasource not found in /etc/cloud/cloud.cfg and expected configuration"
 	fi
 	ci_vendor_config=`grep -i "scripts\-vendor" /etc/cloud/cloud.cfg 2> /dev/null`
-        if [[ $ci_vendor_config != *scripts\-vendor* ]]; then
-            error "Cloud-init Config Check: Module \"scripts-vendor\" is missing in cloud_final_modules of \"/etc/cloud/cloud.cfg\""
-            cloudInitFlag=true
-            logInfo "Fixing scripts-vendor configuration. Please wait."
-            if [ -f /etc/cloud/cloud.cfg ]; then
-                sed -i '/ - scripts-user/a\ - scripts\-vendor' /etc/cloud/cloud.cfg
-		cloudInitFlag=false
+    if [[ $ci_vendor_config != *scripts\-vendor* ]]; then
+        error "Cloud-init Config Check: Module \"scripts-vendor\" is missing in cloud_final_modules of \"/etc/cloud/cloud.cfg\""
+        cloudInitFlag=true
+        logInfo "Fixing scripts-vendor configuration. Please wait."
+        if [ -f /etc/cloud/cloud.cfg ]; then
+            sed -i '/ - scripts-user/a\ - scripts\-vendor' /etc/cloud/cloud.cfg
+		    cloudInitFlag=false
 	    else
 	       cloudInitFlag=true
 	       error "/etc/cloud/cloud.cfg not found"
-            fi
-            passed "scripts-vendor configuration has been fixed."
-        else
-	    cloudInitFlag=false
-            passed "Cloud-init Config Check: Module \"scripts-vendor\" is found."
         fi
+        passed "scripts-vendor configuration has been fixed."
+    else
+	    cloudInitFlag=false
+        passed "Cloud-init Config Check: Module \"scripts-vendor\" is found."
+    fi
 }
 # The following function will check cloud-init installation and configuration. 
 # If it is not installed then it will install cloud init. if some configurations are missing then 
@@ -600,7 +600,7 @@ check_secondary () {
     filepath="/etc/fstab"
     secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
     if [ -z $secondary_volumes ]; then
-        passed "Fstab file does not have enties apart from OS partitions in $filepath and expected configuration"
+        passed "Fstab file does not have entries apart from OS partitions in $filepath and expected configuration"
     else
         logInfo "Taking backup of $filepath file to $filepath-backup "
         cp -avf "$filepath" "$filepath-backup"
@@ -622,9 +622,9 @@ check_secondary () {
         done
         secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
         if [ $failure = false ] && [[ -z $secondary_volumes ]]; then
-            passed "Fstab file does not have enties apart from OS partitions in $filepath"
+            passed "Fstab file does not have entries apart from OS partitions in $filepath"
         else
-            failed "Fstab file does have enties apart from OS partitions in $filepath"
+            failed "Fstab file does have entries apart from OS partitions in $filepath"
         fi
     fi
     echo -e "\n\n"
@@ -667,12 +667,11 @@ ssh_config ()
 }
 # The following function will check status installation and service 
 check_install_and_service_ssh(){
-heading "6. Check SSH Installation and configuration"
-if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
-	if rpm -q openssh-server  >/dev/null 2>&1 && rpm -q openssh-clients >/dev/null 2>&1; then
+    heading "6. Check SSH Installation and configuration"
+    if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
+	    if rpm -q openssh-server  >/dev/null 2>&1 && rpm -q openssh-clients >/dev/null 2>&1; then
     		logInfo "Package  is installed!"
-    		if [[ `systemctl status sshd | grep "active (running)"` ]]
-    		then
+    		if [[ `systemctl status sshd | grep "active (running)"` ]];then
         		logInfo "SSH is running"
         		systemctl enable sshd
         		ssh_config
@@ -682,61 +681,58 @@ if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
         		systemctl enable sshd
         		ssh_config
     		fi
-	else
+	    else
     		error "Package is NOT installed!"
     		logInfo "Installing ssh"
     		if [[	`yum -y install openssh-server openssh-clients` ]];then
-			logInfo "Installation successfull"
-    			if [[ `systemctl status sshd | grep "active (running)"` ]]
-    			then
+			    logInfo "Installation successfull"
+    			if [[ `systemctl status sshd | grep "active (running)"` ]];then
         			logInfo "SSH is running"
         			systemctl enable sshd
         			ssh_config
     			else
-				logInfo "Starting ssh"
+				    logInfo "Starting ssh"
         			systemctl start sshd
         			systemctl enable sshd
         			ssh_config
     			fi
-		else
-			failed "Installed Failed"
-		fi
-	fi
-elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
-	packstatus=`dpkg --get-selections | grep openssh-server | awk '{print $2}'`
-	if [[ "$packstatus" = "install" ]]; then
+		    else
+			    failed "Installed Failed"
+		    fi
+	    fi
+    elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
+	    packstatus=`dpkg --get-selections | grep openssh-server | awk '{print $2}'`
+	    if [[ "$packstatus" = "install" ]]; then
     		logInfo "Package  is installed!"
-    		if [[ `systemctl status ssh | grep "active (running)"` ]]
-    		then
+    		if [[ `systemctl status ssh | grep "active (running)"` ]];then
     			logInfo "SSH is running"
     			systemctl enable ssh
     			ssh_config
     		else
-			logInfo "SSH Not running and Starting now"
+			    logInfo "SSH Not running and Starting now"
     			systemctl start ssh
     			systemctl enable ssh
     			ssh_config
     		fi
-	else
+	    else
     		error "Package  is NOT installed!"
     		if [[ `apt-get install openssh-server -y` ]];then
-			logInfo "Installation successfull"
-    			if [[ `systemctl status ssh | grep "active (running)"` ]]
-    			then
+			    logInfo "Installation successfull"
+    			if [[ `systemctl status ssh | grep "active (running)"` ]];then
         			logInfo "SSH is running"
         			systemctl enable ssh
         			ssh_config
     			else
-				logInfo "SSH Not running and Starting now"
+				    logInfo "SSH Not running and Starting now"
         			systemctl start ssh
         			systemctl enable ssh
         			ssh_config
     			fi
-		else
-			failed "Installed Failed"
-		fi 
-	fi
-fi
+		    else
+			    failed "Installed Failed"
+		    fi 
+	    fi
+    fi
 }
 # The following function will check dhcp configuration
 check_dhcp ()
@@ -816,6 +812,75 @@ check_and_install_drivers () {
     fi
     echo -e "\n\n"
     }
+check_install_and_service_libguestfs-virtd(){
+    heading "8. Check libguestfs Installation"
+    if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
+	    if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
+    		logInfo "Package is installed!"
+		    passed "libguestfs-tools already installed"
+    		if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
+        		logInfo "libvirtd is running"
+        		systemctl enable libvirtd
+			    passed "libvirtd running"
+    		else
+        		logInfo "libvirtd Not running and Starting now"
+        		systemctl start libvirtd
+        		systemctl enable libvirtd
+			    passed "libvirtd running"
+    		fi
+	    else
+    		error "Package is NOT installed!"
+    		logInfo "Installing libguestfs-tools"
+    		if [[	`yum update -y && yum -y install libguestfs-tools` ]];then
+                if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
+			        logInfo "Installation successfull"
+			        passed "libguestfs-tools installed"
+    			    if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
+        			    logInfo "libvirtd is running"
+        			    systemctl enable libvirtd
+				        passed "libvirtd running"
+    			    else
+				        logInfo "Starting libvirtd"
+        			    systemctl start libvirtd
+        			    systemctl enable libvirtd
+				        passed "libvirtd running"
+    			    fi
+                else
+                    failed "Installed Failed"
+                fi
+		    else
+			    failed "Installed Failed"
+		    fi
+	    fi
+    elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
+	    packstatus=`dpkg --get-selections | grep libguestfs-tools | awk '{print $2}'`
+	    if [[ "$packstatus" = "install" ]]; then
+    		logInfo "Package  is installed!"
+            passed "libguestfs-tools already installed"
+	    else
+    		error "Package  is NOT installed!"
+    		if [[ `apt-get update -y && apt-get install libguestfs-tools -y` ]];then
+                packstatus=`dpkg --get-selections | grep libguestfs-tools | awk '{print $2}'`
+	            if [[ "$packstatus" = "install" ]]; then
+			        logInfo "Installation successfull"
+                    passed "libguestfs-tools installed"
+                else
+                    failed "Installation Failed"
+                fi
+		    else
+			    failed "Installation Failed"
+		    fi 
+	    fi
+    fi
+}
+check_user_secondary_volume_migration(){
+	question "Do you want to install guestfs library which is used in secondary volume migration"
+	read userinput
+	if [[ "$userinput" == "y" ]];then
+		check_install_and_service_libguestfs-virtd
+	fi
+
+}
 #---------------------------------------------------------------------------------------------------
 #----------------------------          SCRIPT START POINT           --------------------------------
 #---------------------------------------------------------------------------------------------------
@@ -850,6 +915,9 @@ check_install_and_service_ssh
 #-------------------------------- Checking DHCP  Script starts here --------------------------------
 check_dhcp
 #-------------------------------- Checking DHCP  Script End here -----------------------------------
+#-------------------------------- Check Secondary volume migration with user inputstarts here ------
+check_user_secondary_volume_migration
+#-------------------------------- Check Secondary volume migration with user input End here --------
 #-------------------------------- End of the Script ------------------------------------------------
 welcome_note "   SUMMARY of the Pre-validated script "
 printf "$summary"

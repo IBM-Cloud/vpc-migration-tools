@@ -2,7 +2,7 @@
 There are a set of minimum requirements that the image must meet when you migrate a virtual/guest
 machine to IBM Cloud as a custom image. More information can be found at the following links:
 - [Importing and managing custom images](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images)
-- [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-vmware-vmdk-images)
+- [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vpc)
 
 It is highly recommended to test the pre-check scripts on a clone of the virtual/guest machine
 first before using it on a production system.
@@ -13,6 +13,8 @@ Resource: [Creating a Linux custom image](https://cloud.ibm.com/docs/vpc?topic=v
 A script written in BASH that automates some of the tasks are described in the link above.  This
 script can be used if you are planning to do the migration yourself or use in conjunction with VPC+ 
 Cloud Migration tool.
+
+**Note:** Pre-check not required for IBM Cloud classic VSI migration.
 
 The script checks the following:
 - Check for minimum supported operating systems which are as follows:
@@ -25,12 +27,13 @@ The script checks the following:
 the data source parameters.
      - If the virtual server instance is from IBM Cloud classic infrastructure and has secondary attached
 volumes (or devices), script will take a backup of ```/etc/fstab``` and remove entries other than ```/```, ```/boot``` and ```swap```.
+- Guestfs library is an optional Installation for secondary volume migration, User will be prompted (y/n), User can opt 'y' for following linux **Centos/Redhat 8, Ubuntu 18.04 and 20.04 and Debian 9 and 10**.
 
-**NOTE:** The script does depend on `yum` in order to install cloud-init.  Make sure your repository is
+**NOTE:** The script does depend on `yum` and `apt-get` in order to install cloud-init.  Make sure your repository is
 current.
 
 To execute the script, run the following command as root user: </br>
-```./rhel_precheck.sh```
+```./linux_precheck.sh```
 
 ## FAQ
 1. How do I resolve SSH failure?

@@ -2,7 +2,8 @@
 You can convert your virtual machine (VM) to IBM Cloud® virtual server instances to import your image to IBM Cloud VPC, and then use a custom image to create new virtual server instances, using `migration.sh` script.
 This script performs following activities:
 - Converts images from VMDK/VHD format to qcow2 format
-- Check for presence of qcow2 image in COS (client Object Storage)
+- An option to upload the converted qcow2 image to COS
+- Check for presence of qcow2 image in COS (Cloud Object Storage)
 - Create custom image
 
 ## Prerequisite
@@ -19,10 +20,11 @@ All parameters in `migration.cfg` are mandatory. It must have correct values. An
 - `RESOURCE_GROUP` - A resource group name of custom image and virtual server instance.
 - `OS_NAME` - Operating system's name (for example, if it's Ubuntu 18.04, then the name is `OS_NAME=ubuntu`)
 - `OS_VERSION` - Major and minor version of operating system (for example,  if it's Ubuntu 18.04, then the value is `OS_VERSION=18.04`)
+- `PARTFILESIZE` - Defining size for spliting image file into specified PARTFILESIZE can be ranges from 10m to 1000m(best internet connection), based on internet speed and stability
 - Supported operating systems:
     - Centos 7, 8
     - Redhat 7, 8
-    - Ubuntu 16.04, 18.04
+    - Ubuntu 16.04, 18.04, 20.04
     - Windows 2012, 2012-r2, 2016
     - Debian 9, 10
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
@@ -61,6 +63,5 @@ How-to guide for [Migrating VMDK or VHD images to VPC](https://cloud.ibm.com/doc
 
 # What's in progress?
 The following are not currently supported but will be supported in future releases:
-- Ubuntu 20.04 operating system
-- Secondary volume for RHEL 8, CentOS 8, Ubuntu 20.04
+- Image upload to cos with migration script is not supported for windows
 
