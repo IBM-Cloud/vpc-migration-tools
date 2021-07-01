@@ -518,7 +518,7 @@ check_credential () {
 logInfo "Please Make sure Network Reset and Sysprep completed in windows machine before proceeding migration"
 sleep 3s;
 
-welcome_note "This is a Migration scritp will help to convert image, upload image to cos, creates custom image and finally create vpc gen2 vsi with custom image."
+welcome_note "This is a Migration script will help to convert image, upload image to cos, creates custom image and finally create vpc gen2 vsi with custom image."
 echo -e "\n"
 sleep 2s;
 
@@ -529,12 +529,12 @@ load_config
 echo -e "\n"
 sleep 2s;
 #------------------------------------------ Check Config Ends here ----------------------------------------------------------
-#------------------------------------------ Image Conversion Scritp Starts here ---------------------------------------------
+#------------------------------------------ Image Conversion Script Starts here ---------------------------------------------
 heading "2. Converting Image"
 convert_image
 echo -e "\n"
 sleep 2s;
-#------------------------------------------ Image Conversion Scritp Script Ends here ----------------------------------------
+#------------------------------------------ Image Conversion Script Ends here ----------------------------------------
 #------------------------------------------ Upload to COS Bucket Script Starts here -----------------------------------------
 heading "3. Uploading to COS Bucket"
 sleep 2s;
