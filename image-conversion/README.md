@@ -63,5 +63,5 @@ How-to guide for [Migrating VMDK or VHD images to VPC](https://cloud.ibm.com/doc
 
 # What's in progress?
 The following are not currently supported but will be supported in future releases:
-- Image upload to cos with migration script is not supported for windows
+- Auto provisioning of IBM Cloud VSI creation 
 
