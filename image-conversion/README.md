@@ -15,7 +15,7 @@ This script performs following activities:
 
 All parameters in `migration.cfg` are mandatory. It must have correct values. Any incorrect value might result in an error or unexpected behavior.
 - `REGION`- A region name of a resource. e.g. `tokyo`
-- `BUCKET`- An IBM's client Object Storage bucket name.
+- `BUCKET`- An IBM's Cloud Object Storage bucket name.
 - `IMAGE_FILENAME` - Absolute path of image with VMDK/VHD format.
 - `RESOURCE_GROUP` - A resource group name of custom image and virtual server instance.
 - `OS_NAME` - Operating system's name (for example, if it's Ubuntu 18.04, then the name is `OS_NAME=ubuntu`)
