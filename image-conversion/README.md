@@ -20,7 +20,7 @@ All parameters in `migration.cfg` are mandatory. It must have correct values. An
 - `RESOURCE_GROUP` - A resource group name of custom image and virtual server instance.
 - `OS_NAME` - Operating system's name (for example, if it's Ubuntu 18.04, then the name is `OS_NAME=ubuntu`)
 - `OS_VERSION` - Major and minor version of operating system (for example,  if it's Ubuntu 18.04, then the value is `OS_VERSION=18.04`)
-- `PARTFILESIZE` - Defining size for spliting image file into specified PARTFILESIZE can be ranges from 10m to 1000m(best internet connection), based on internet speed and stability
+- `PARTFILESIZE` - Defining size for splitting image file into specified PARTFILESIZE can be ranges from 10m to 1000m(best internet connection), based on internet speed and stability
 - Supported operating systems:
     - Centos 7, 8
     - Redhat 7, 8
@@ -29,7 +29,7 @@ All parameters in `migration.cfg` are mandatory. It must have correct values. An
     - Debian 9, 10
 - No space before and after `=` sign. Syntax : `PARAMETER_NAME=value`
 
-## Windows-pecific guidelines
+## Windows-specific guidelines
 - Perform the following steps only if your instance is _**Windows**_, after you have successfully executed OS pre-check scripts:
     - Network reset
         - This disables network access to machine
