@@ -62,5 +62,5 @@ Make sure to have the correct value for all parameters in the `migration.cfg` fi
 How-to guide for [Migrating VMDK or VHD images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vpc)
 
 # What's in progress?
-    Auto provisioning of IBM Cloud VSI creation 
+   Auto provisioning of IBM Cloud VSI creation 
 
