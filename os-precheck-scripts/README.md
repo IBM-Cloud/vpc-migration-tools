@@ -58,6 +58,10 @@ Install Virtio drivers and its dependencies by yourself.
 6. How do I resolve cloud-init failure? <br>
 Refer to step 5 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image, install, and configure accordingly.
 
+7. How do I resolve libguestfs-tools installation failure in centos 8 for classic VSI to VPC VSI migration? <br>
+Run below command to resolve repo related errors in centos 8 after migration. <br>
+`sed -i 's/mirrors.service.networklayer.com/mirrors.adn.networklayer.com/g' /etc/yum.repos.d/CentOS*`
+
 # Windows
 Resource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
 
@@ -116,8 +120,3 @@ Backup `C:\Users\Administrator\` directory to safe place for future need.
 
 7. How do I resolve configure check failure? <br>
 Make sure to have correct value for each parameter.
-
-8. How do I resolve libguestfs-tools installation failure in centos 8 for classic VSI to VPC VSI migration? <br>
-Run below command to resolve repo related errors in centos 8 after migration. <br>
-`sed -i 's/mirrors.service.networklayer.com/mirrors.adn.networklayer.com/g' /etc/yum.repos.d/CentOS*`
-
