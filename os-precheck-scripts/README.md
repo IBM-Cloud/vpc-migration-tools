@@ -14,7 +14,7 @@ A script written in BASH that automates some of the tasks are described in the l
 script can be used if you are planning to do the migration yourself or use in conjunction with VPC+ 
 Cloud Migration tool.
 
-**Note:** Pre-check not required for IBM Cloud classic VSI migration.
+**Note:** Ignore DHCP failure when executing pre-check script for IBM Cloud classic VSI migration.
 
 The script checks the following:
 - Check for minimum supported operating systems which are as follows:
