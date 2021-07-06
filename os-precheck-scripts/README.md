@@ -14,7 +14,7 @@ A script written in BASH that automates some of the tasks are described in the l
 script can be used if you are planning to do the migration yourself or use in conjunction with VPC+ 
 Cloud Migration tool.
 
-**Note:** Pre-check not required for IBM Cloud classic VSI migration(make sure libguestfs-tools installed before migration).
+**Note:** Pre-check not required for IBM Cloud classic VSI migration.
 
 The script checks the following:
 - Check for minimum supported operating systems which are as follows:
@@ -116,3 +116,8 @@ Backup `C:\Users\Administrator\` directory to safe place for future need.
 
 7. How do I resolve configure check failure? <br>
 Make sure to have correct value for each parameter.
+
+8. How do I resolve libguestfs-tools installation failure in centos 8 for classic VSI to VPC VSI migration? <br>
+Run below command to resolve repo related errors in centos 8 after migration. <br>
+`sed -i 's/mirrors.service.networklayer.com/mirrors.adn.networklayer.com/g' /etc/yum.repos.d/CentOS*`
+
