@@ -14,7 +14,7 @@ A script written in BASH that automates some of the tasks are described in the l
 script can be used if you are planning to do the migration yourself or use in conjunction with VPC+ 
 Cloud Migration tool.
 
-**Note:** Pre-check not required for IBM Cloud classic VSI migration.
+**Note:** Ignore DHCP failure when executing pre-check script for IBM Cloud classic VSI.
 
 The script checks the following:
 - Check for minimum supported operating systems which are as follows:
@@ -33,7 +33,7 @@ volumes (or devices), script will take a backup of ```/etc/fstab``` and remove e
 current.
 
 To execute the script, run the following command as root user: </br>
-```./linux_precheck.sh```
+```bash linux_precheck.sh```
 
 ## FAQ
 1. How do I resolve SSH failure?
@@ -53,10 +53,14 @@ At least one network adapter is set to get the IP address automatically (DHCP en
 Add following four parameters `(nomodeset, nofb, vga=normal, console=ttyS0)` to `/etc/default/grub` file as it is.
 
 5. How do I resolve Virtio driver failure? <br>
-Install Virtio drivers and its dependancies by yourself.
+Install Virtio drivers and its dependencies by yourself.
 
 6. How do I resolve cloud-init failure? <br>
 Refer to step 5 from IBM Cloud documentation https://cloud.ibm.com/docs/vpc?topic=vpc-create-linux-custom-image, install, and configure accordingly.
+
+7. How do I resolve libguestfs-tools installation failure in centos 8 for classic VSI to VPC VSI migration? <br>
+Run below command to resolve repo related errors in centos 8 after migration. <br>
+`sed -i 's/mirrors.service.networklayer.com/mirrors.adn.networklayer.com/g' /etc/yum.repos.d/CentOS*`
 
 # Windows
 Resource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
@@ -90,7 +94,7 @@ the files to the C:\temp folder.
 - Usage ```PS C:\ .\windows_precheck.ps1```
 - The system still needs to go through Windows sysprep, device driver update, image conversion.
 For more information, reference the above link. 
-- In windows, `migration_prep.ps1` creates duplicate directories of 'Music', 'Pictures', 'Videos' under `c:\backup\Administartor\document\`.
+- In windows, `migration_prep.ps1` creates duplicate directories of 'Music', 'Pictures', 'Videos' under `c:\backup\Administrator\document\`.
 - Execute powershell precheck script as `Administrator` user
 
 ## FAQ
