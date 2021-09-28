@@ -7,7 +7,7 @@
 function isValidOs() {
 	try {
 		$boolIsValid = $False;
-		$arrstrAllowedOSes = @( 'Microsoft Windows Server 2016 Standard','Microsoft Windows Server 2012 R2 Standard','Microsoft Windows Server 2012 Standard');
+		$arrstrAllowedOSes = @( 'Microsoft Windows Server 2019 Standard', 'Microsoft Windows Server 2016 Standard','Microsoft Windows Server 2012 R2 Standard','Microsoft Windows Server 2012 Standard');
 		$strOsName = ( Get-WmiObject -Class win32_operatingsystem ).caption;
 		$arrstrAllowedOSes | ForEach-Object { if ( $strOsName.toLower().Contains( $_.toLower() ) ) { $boolIsValid = $True; } };		
 	} catch {
@@ -129,9 +129,11 @@ function getCertificatePath( $strDriveLetter ) {
 	$strOsName = ( Get-WmiObject -Class win32_operatingsystem ).caption;
 
 	switch ( $strOsName ) {
+		"Microsoft Windows Server 2019 Standard" { $strPath = "$strDriveLetter\amd64\2k19"; Break; }
 		"Microsoft Windows Server 2016 Standard" { $strPath = "$strDriveLetter\amd64\2k16"; Break; }
 		"Microsoft Windows Server 2012 R2 Standard" { $strPath = "$strDriveLetter\amd64\2k12R2"; Break; }
 		"Microsoft Windows Server 2012 Standard" { $strPath = "$strDriveLetter\amd64\2k12"; Break; }
+		"Microsoft Windows Server 2019 Standard Evaluation" { $strPath = "$strDriveLetter\amd64\2k19"; Break; }
 		"Microsoft Windows Server 2016 Standard Evaluation" { $strPath = "$strDriveLetter\amd64\2k16"; Break; }
 		"Microsoft Windows Server 2012 R2 Standard Evaluation" { $strPath = "$strDriveLetter\amd64\2k12R2"; Break; }
 		"Microsoft Windows Server 2012 Standard Evaluation" { $strPath = "$strDriveLetter\amd64\2k12"; Break; }
@@ -289,7 +291,7 @@ function main() {
     ###############################################
     $adminbackupstatus = copy_directory -userpath $ADMIN_USER_PATH -backuppath $ADMIN_USER_BACKUP_PATH;
     if ( $True -eq $adminbackupstatus ) {
-		Write-Host "`nAdministrator files backup sucessfull" -ForegroundColor Yellow;
+		Write-Host "`nAdministrator files backup successful" -ForegroundColor Yellow;
         $queueTable.Rows.Add("Administrator Files Backup","Passed") | Out-Null        
 	} else {
 		Write-Host "`nAdministrator files backup failed" -ForegroundColor Red;
@@ -324,7 +326,6 @@ function main() {
                 Write-Output "Trying to download again..."
                 $downloadstatus = download_file -url $DOWNLOAD_URL_VIRTIO_DRIVERS -targetFile $strVirtIoIsoPath;
                 $trycount =    $trycount + 1
-                Write-Output $downloadstatus
                 Start-Sleep -s 10
             }
             if ($downloadstatus -eq $False) {
@@ -366,11 +367,24 @@ function main() {
 		Write-Host "`nFound Cloudbase-Init $strCurrentVersion in system." -ForegroundColor Yellow;
 		$boolIsAllowedVersion = isValidVersion -strMinimumVersion $MINIMUM_VERSION_CLOUDBASE_INIT -strCurrentVersion $strCurrentVersion;
 		if ( $False -eq $boolIsAllowedVersion ) {
-			Write-Host "`nVersion $strCurrentVersion of Cloudbase-Init is incompatible with migration process. Please Uninstall Cloudbase-Init and Re-run the script." -ForegroundColor Yellow;
-		    $queueTable.Rows.Add("CloudBase-Init","Failed") | Out-Null
+			$cloudInitVersionCompatible = $False
+            Write-Host "`nError : Version $strCurrentVersion of Cloudbase-Init is incompatible with migration process. Script will Uninstall Cloudbase-Init and Re-install compatible version." -ForegroundColor Red;
+		    $removeCloudbase = Get-WmiObject -Class Win32_Product | Where-Object{$_.Name -Like "Cloudbase-Init*"}
+            Write-Host "`nUnistallation of cloudbase init in progress..." -ForegroundColor Yellow;
+            $removeCloudbase.Uninstall() 
+            $boolIsCouldInitPresent = isApplicationPresent -strApplicationName "Cloudbase-Init*";  
+			if( $boolIsCouldInitPresent -eq $True ) {
+				Write-Host "`nError : Uninstall Cloudbase-Init failed, Please re-run the script after manual un-installation of cloudbase-init." -ForegroundColor Red;
+				$queueTable.Rows.Add("CloudBase-Init Uninstallation","Failed") | Out-Null
+			}
+			else{
+				Write-Host "`n Uninstall Cloudbase-Init Successful." -ForegroundColor Yellow;
+				$queueTable.Rows.Add("CloudBase-Init Uninstallation","Passed") | Out-Null
+			}
         } else {
 			Write-Host "`nVersion $strCurrentVersion of Cloudbase-Init is compatible with migration process." -ForegroundColor Yellow;
-	        $queueTable.Rows.Add("CloudBase-Init","Passed") | Out-Null
+			$queueTable.Rows.Add("CloudBase-Init compatibility","Passed") | Out-Null
+			$cloudInitVersionCompatible = $True 
         }
 	} else {
 		Write-Host "`nCloudbase-Init application is not installed. Need to download and install recent version of Cloudbase-Init application." -ForegroundColor Yellow;
@@ -394,11 +408,12 @@ function main() {
         }
 		if( Test-Path -Path $strCloudbaseInitPath ) {
 			$CloudInitInstallStatus = installSoftware -strSourcePath $strCloudbaseInitPath -strInstalledPath $strCloudbaseInitInstalledPath;
-	        Write-Output $CloudInitInstallStatus
             if ($CloudInitInstallStatus -eq "Passed"){
-                $queueTable.Rows.Add("CloudBase-Init","Passed") | Out-Null
+                $queueTable.Rows.Add("CloudBase-Init Install","Passed") | Out-Null
+				$cloudInitVersionCompatible = $True 
             }else{
-                $queueTable.Rows.Add("CloudBase-Init","Failed") | Out-Null
+                $queueTable.Rows.Add("CloudBase-Init Install","Failed") | Out-Null
+				$cloudInitVersionCompatible = $False
             }	
     }		
 	}
@@ -490,37 +505,39 @@ plugins=cloudbaseinit.plugins.common.mtu.MTUPlugin,
     </component>
   </settings>
 </unattend>';
-    if (Test-Path -Path $strCloudbaseInitInstalledPath){
-        try {
-            if( Test-Path -Path $strConfigPath ) {
-		        backupFile -strPath $strConfigPath -strRenamedConfigFile $strRenamedConfigFile;
-		        removeConfig -strPath $strConfigPath;
-                createConfig -strPath $strConfigPath -strFileContent $strOriginalConfigContent;
-	        } else {
-		        createConfig -strPath $strConfigPath -strFileContent $strOriginalConfigContent;
-	        }
-	        if( Test-Path -Path $strConfigUnattendPath ) {
-		        backupFile -strPath $strConfigUnattendPath -strRenamedConfigFile $strRenamedConfigUnattendFile;
-		        removeConfig -strPath $strConfigUnattendPath;
-                createConfig -strPath $strConfigUnattendPath -strFileContent $strOriginalConfigUnattendContent;
-	        } else {
-		        createConfig -strPath $strConfigUnattendPath -strFileContent $strOriginalConfigUnattendContent;
-	        }
-	        if( Test-Path -Path $strUnattendConfigXml ) {
-		        backupFile -strPath $strUnattendConfigXml -strRenamedConfigFile $strRenamedConfigUnattendXmlFile;
-		        removeConfig -strPath $strUnattendConfigXml;
-                createConfig -strPath $strUnattendConfigXml -strFileContent $strOriginalConfigUnattendXmlContent;
-	        } else {
-		        createConfig -strPath $strUnattendConfigXml -strFileContent $strOriginalConfigUnattendXmlContent;
-	        }
-            $queueTable.Rows.Add("CloudBase-Init Config","Passed") | Out-Null
-         }catch{
-            $queueTable.Rows.Add("CloudBase-Init Config","Failed") | Out-Null 
-         }
-    }
+	if ( $True -eq $cloudInitVersionCompatible ) { 
+    	if (Test-Path -Path $strCloudbaseInitInstalledPath){
+        	try {
+            	if( Test-Path -Path $strConfigPath ) {
+		        	backupFile -strPath $strConfigPath -strRenamedConfigFile $strRenamedConfigFile;
+		        	removeConfig -strPath $strConfigPath;
+                	createConfig -strPath $strConfigPath -strFileContent $strOriginalConfigContent;
+	        	} else {
+		        	createConfig -strPath $strConfigPath -strFileContent $strOriginalConfigContent;
+	        	}
+	        	if( Test-Path -Path $strConfigUnattendPath ) {
+		        	backupFile -strPath $strConfigUnattendPath -strRenamedConfigFile $strRenamedConfigUnattendFile;
+		        	removeConfig -strPath $strConfigUnattendPath;
+                	createConfig -strPath $strConfigUnattendPath -strFileContent $strOriginalConfigUnattendContent;
+	        	} else {
+		        	createConfig -strPath $strConfigUnattendPath -strFileContent $strOriginalConfigUnattendContent;
+	        	}
+	        	if( Test-Path -Path $strUnattendConfigXml ) {
+		        	backupFile -strPath $strUnattendConfigXml -strRenamedConfigFile $strRenamedConfigUnattendXmlFile;
+		        	removeConfig -strPath $strUnattendConfigXml;
+                	createConfig -strPath $strUnattendConfigXml -strFileContent $strOriginalConfigUnattendXmlContent;
+	        	} else {
+		        	createConfig -strPath $strUnattendConfigXml -strFileContent $strOriginalConfigUnattendXmlContent;
+	        	}
+            	$queueTable.Rows.Add("CloudBase-Init Config","Passed") | Out-Null
+         	}catch{
+            	$queueTable.Rows.Add("CloudBase-Init Config","Failed") | Out-Null 
+         	}
+    	}
+	}
  summary      
 }
 # Script execution will start from here.
 # Clear-host;
 $ErrorActionPreference = 'Stop'; 
-main;     
+main; 
