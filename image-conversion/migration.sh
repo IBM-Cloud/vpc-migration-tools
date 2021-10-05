@@ -49,6 +49,10 @@ dallas="us-south"
 #summary variable initialization
 summary=""
 
+#temporary file and directory name declaration
+tmpdir="tmp-$0"
+customimagedetailstmp="$tmpdir/customimagedetails.tmp"
+vsidetailstmp="$tmpdir/vsidetails.tmp"
 ### Function Declaration
 
 # The following function will draw a line with three parameters as below:
@@ -103,7 +107,7 @@ footer () {
     echo -e "\n\n\n"
     draw_line "-" 1
     display "END OF THE SCRIPT" $RED
-    draw_line "-" 2 $RED
+    draw_line "-" 2 $GREEN
     echo -e "\n\n\n"
 }
 # The following function will be used to print any question with y/n option.
@@ -158,6 +162,19 @@ failed () {
     done;
     draw_line "-" 1
 }
+# The following function will test the required or compatible 'Operating System' and required or compatible
+# version and will print the passed or failed messages correspondingly.
+# If the Operating System is not compatible it will print the error and exit the script.
+check_os_distro () {
+    flag=false
+    # Check the OS distro and version to ensure it is supported
+    if [ -f /etc/os-release ]; then
+        DISTRO=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+        DISTRO_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
+    else
+        flag=true
+    fi
+}
 # The following function will be used to print welcome text in blue color with some pattern
 # The text will be aligned center.
 # Argument 1 = This argument specify the text to be printed.
@@ -176,7 +193,7 @@ check_config () {
 	if [[ ! -z "$REGION" ]] && [[ ! -z "$BUCKET" ]] && [[ ! -z "$IMAGE_FILENAME" ]] && [[ ! -z "$RESOURCE_GROUP" ]];then 
 		if [[ ! -z "$OS_NAME" ]] && [[ ! -z "$OS_VERSION" ]] ;then
             	failure="false"
-				ibmcloud resource group $RESOURCE_GROUP >> tmprg.txt	
+				ibmcloud resource group $RESOURCE_GROUP > tmprg.txt	
 	        	RESOURCE_GROUP_ID=`cat tmprg.txt | grep "ID:" | grep -v "Account ID:" | awk '{print $2}'`		
 				rm -rf tmprg.txt
         else
@@ -197,9 +214,9 @@ check_config () {
 		failure="true"
     fi
 	if [ $failure = false ] ; then
-    	passed "Config file check completed"
+    	passed "Configuration file check completed"
     else
-    	failed "Config file check failed, Please check all parameters filled in config file"
+    	failed "Configuration file check failed, Please check all parameters filled in config file"
 		exit 1
     fi
 }
@@ -207,25 +224,25 @@ check_config () {
 load_config () {
 	logInfo "$CONFIGFILE loading..."
 	source "$CONFIGFILE"
-	check_credential
 	check_config
+	check_credential
 }
 # The following function will convert vhd/vmdk to qcow2 format.
 convert_to_qcow2 () {
 	echo "Converting to qcow2 in progress..."
     if qemu-img convert -p -f $format -O $dstformat -o cluster_size=512k $IMAGE_FILENAME $destinationfilename
     then
+		qemu-img resize $destinationfilename 100G
         failure="false"
     else
         failure="true"
     fi
     if [ $failure = false ] ; then
-        passed "Image conversion successfull"
+        passed "Image conversion successful"
     else
         failed "Image conversion failed"
         exit 1
     fi
-
 }
 # The following function will check and create variables for image convertion based on format and also checks whether already exist.
 convert_image () {
@@ -252,9 +269,10 @@ convert_image () {
 	fi
 	if [[ -f $destinationfilename ]] ;then
 		question "File exist with same name as output file and do want to replace"
-		read userdecision
-		if [[ "$userdecision" = "y" ]];then
+		read convertuseropt
+		if [[ "$convertuseropt" = "y" ]];then
 			rm -rf $destinationfilename
+			coscheck="upload"
 			convert_to_qcow2 
 		else
 			logInfo "Image conversion not done"
@@ -269,7 +287,13 @@ check_cos_object () {
 	objectstatus=`ibmcloud cos objects --bucket "$BUCKET" --prefix "$upload_object" | grep "$upload_object" | awk '{print $1}'`
 	if [[ "$userinput" == "y" ]];then
 		if [[ "$objectstatus" == "$upload_object" ]];then
-			passed "Image file: $objectstatus present in cos"
+			if [[ "$convertuseropt" = "y" ]] && [[ "$coscheck" = "upload" ]];then
+				logInfo "COS object will be overwritten with newly converted image"
+				coscheck="noupload"
+				cos_upload
+			else
+				passed "Image file: $objectstatus present in cos"
+			fi
 		else
 			logInfo "Image file will be uploaded to cos"
 			cos_upload
@@ -321,9 +345,9 @@ cos_partdetails_json (){
 		fi	
 }
 cos_upload (){
-	rm -rf tmp-$0*
-	mkdir -p tmp-$0/parted-files
-	partfilepath="tmp-$0/"
+	rm -rf $tmpdir/parted-files*
+	mkdir $tmpdir/parted-files
+	partfilepath="$tmpdir/"
     partfilesuffix="parted-files/part-file-"
 	imagename=`basename $destinationfilename`
 	etagfile="etag.json"
@@ -373,27 +397,51 @@ cos_upload (){
         echo "{\"Parts\": [${partdetails[@]}]}" > $etagpath
 
         ibmcloud cos multipart-upload-complete --bucket $BUCKET --key $imagename --upload-id $uploadid --multipart-upload file://$etagpath
-        rm -rf $partfilepath
+        rm -rf $tmpdir/parted-files*
+		rm -rf $tmpdir/$etagfile
 		check_cos_object
+}
+#Delete custom image
+delete_custom_image()
+{
+	logInfo "Existing Custom Image will be deleted and new custom image will be created with new image file"
+	logInfo "Deleting Custom Image in progress..."
+	deleteimageid=$1
+	ibmcloud is image-delete $deleteimageid -f
+	deleteimgstatus=`ibmcloud is image $deleteimageid | grep -e "Status  " | awk '{print $2}'`
+	while [[ "$deleteimgstatus" = "deleting" ]]
+	do
+		sleep 20s
+		logInfo "Image deletion in progress..."
+		if ibmcloud is image $deleteimageid > /dev/null 2>&1 ;then
+			deleteimgstatus=`ibmcloud is image $deleteimageid | grep -e "Status  " | awk '{print $2}'`
+		else
+			deleteimgstatus="deleted"
+			logInfo "Existing Custom Image have been deleted"
+		fi
+	done
+	imageid=""
 }
 # The following function will create custom image with uploaded qcow2 file.
 create_custom_image (){
-	customimgname=$1
+	CUSTOM_IMAGE_NAME=$1
 	imgloc=$2
 	osname=$3
     RESOURCE_GROUP_ID=$4 
-    tmpfilename=$5
-    action=$6
+    action=$5
 	imageid=""
 	retrycountcustom=0
 	if [[ "$action" = "create" ]];then
 		while [[ $retrycountcustom -le 10  ]] && [[ -z $imageid ]]
 		do
-			ibmcloud is image-create $customimgname  --file $imgloc --os-name $osname --resource-group-id $RESOURCE_GROUP_ID > $tmpfilename.txt
-        	imageid=`cat $tmpfilename.txt | grep ID | awk '{print $2}'`
+			if [[ $retrycountcustom -gt 0  ]];then
+				logInfo "Re-trying Custom image creation"
+			fi
+			ibmcloud is image-create $CUSTOM_IMAGE_NAME  --file $imgloc --os-name $osname --resource-group-id $RESOURCE_GROUP_ID > $customimagedetailstmp
+        	imageid=`cat $customimagedetailstmp | grep ID | awk '{print $2}'`
 			retrycountcustom=$((retrycountcustom + 1))
-			logInfo "Creating Custom Image in progess..."
-			sleep 60
+			logInfo "Creating Custom Image in progress..."
+			sleep 60s
 			imgstatus=`ibmcloud is image $imageid | grep -e "Status  " | awk '{print $2}'`			
 		done
     else
@@ -402,10 +450,10 @@ create_custom_image (){
     fi
     while [[ "$imgstatus" = "pending" ]]
     do
-        logInfo "Creating Custom Image in progess..."
+        logInfo "Creating Custom Image in progress..."
 		logInfo "Next update in 40 Seconds"
         imgstatus=`ibmcloud is image $imageid | grep -e "Status  " | awk '{print $2}'`
-        sleep 40
+        sleep 40s
     done
     if [[ "$imgstatus" = "available" ]];then
         failure="false"
@@ -413,24 +461,19 @@ create_custom_image (){
         failure="true"
     fi
     if [ $failure = false ] ; then
-        passed "Create Custom image successfull"
-        logInfo "Custom Image Name: $customimgname"
+        passed "Create Custom image successful"
+        logInfo "Custom Image Name: $CUSTOM_IMAGE_NAME"
         logInfo "Custom Image Id: $imageid"
-        rm -rf $tmpfilename.txt
+        rm -rf $customimagedetailstmp
     else
         failed "Create Custom image failed"
     fi 
 }
-
 # The following function will create custom image with uploaded qcow2 file.
 check_custom_image () {
 	failure="false"
-   	customimgname="${destinationfilename%.*}"
-	customimgname=`basename $customimgname`	
-	customimgname="${customimgname//_/-}"
-	customimgname="${customimgname//./-}"
-   	tmpfilename=$customimgname
-	customimgname="$customimgname-$(date +%y%m%d%H%M)"
+	CUSTOM_IMAGE_NAME="${CUSTOM_IMAGE_NAME//_/-}"
+	CUSTOM_IMAGE_NAME="${CUSTOM_IMAGE_NAME//./-}"
 	OS_VERSION="${OS_VERSION//./-}"
 	if [[ "$OS_NAME" == "redhat" ]];then
 		OS_NAME="red"
@@ -439,20 +482,28 @@ check_custom_image () {
 	fi
 	osname="$OS_NAME-$OS_VERSION-amd64"
 	imgloc="cos://$REGION/$BUCKET/$upload_object"
-	customimgname=`echo $customimgname | tr '[:upper:]' '[:lower:]'`
+	CUSTOM_IMAGE_NAME=`echo $CUSTOM_IMAGE_NAME | tr '[:upper:]' '[:lower:]'`
 	osname=`echo $osname | tr '[:upper:]' '[:lower:]'`
-    if [[ ! -f "$tmpfilename.txt" ]];then
-        create_custom_image $customimgname $imgloc $osname $RESOURCE_GROUP_ID $tmpfilename create
+    if [[ ! -f "$customimagedetailstmp" ]] && [[ -z "$imageid" ]];then
+        create_custom_image $CUSTOM_IMAGE_NAME $imgloc $osname $RESOURCE_GROUP_ID create
+	elif [[ "$convertuseropt" = "n" ]] && [[ ! -z "$imageid" ]];then
+		logInfo "Existing custom image $imageid will be used for VSI creation, since qcow2 file not converted with this execution"
+		imgstatus=`ibmcloud is image $imageid | grep -e "Status  " | awk '{print $2}'`
+		while [[ -z "$imgstatus" ]]
+		do
+			sleep 5s
+			imgstatus=`ibmcloud is image $imageid | grep -e "Status  " | awk '{print $2}'`
+		done
     else
 		question "Are you re-running the migration script after failure"
 		read userinput
 		if [[ "$userinput" == "y" ]];then
-			imageid=`cat $tmpfilename.txt | grep ID | awk '{print $2}'`
+			imageid=`cat $customimagedetailstmp | grep ID | awk '{print $2}'`
             if [[ ! -z "$imageid" ]];then
-				create_custom_image $customimgname $imgloc $osname $RESOURCE_GROUP_ID $tmpfilename $imageid
+				create_custom_image $CUSTOM_IMAGE_NAME $imgloc $osname $RESOURCE_GROUP_ID $imageid
 			else
-				rm -rf $tmpfilename.txt
-				create_custom_image $customimgname $imgloc $osname $RESOURCE_GROUP_ID $tmpfilename create
+				rm -rf $customimagedetailstmp
+				create_custom_image $CUSTOM_IMAGE_NAME $imgloc $osname $RESOURCE_GROUP_ID create
 			fi
 		else
 			logInfo "Please change image name and try again"
@@ -464,20 +515,12 @@ check_credential () {
 	logInfo "Validating $CONFIGFILE file and Permission"
 	credential_region=`ibmcloud cos config list | grep "Default Region" | awk '{print $3}'`
 	REGION=`echo "${!REGION}"`
-	if ibmcloud >/dev/null 2>&1 ;then
-        failure=false
-    else
-        failure=true
-        error "ibmcloud cli not found"
-		failed "Credential Check"
-		exit 1
-    fi
 	if [[ "$REGION" == "$credential_region" ]];then
 		failure=false
 	else
 		failure=true
 		error "Please configure ibm cloud cli login with same region as config file"
-		failed "Credential Check"
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
 		exit 1
 	fi
     if ibmcloud resource groups >/dev/null 2>&1 ;then
@@ -485,7 +528,15 @@ check_credential () {
 	else
 		error "Not able to get Resource Group details, Please ensure to login ibmcloud cli 'ibmcloud login' and also check permission"
 		failure=true
-		failed "Credential Check"
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
+		exit 1
+	fi	
+	if [[ -f "$IMAGE_FILENAME" ]];then
+		failure=false	
+	else
+		error "Image file doesn't exist in given path"
+		failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
 		exit 1
 	fi	
 	if ibmcloud cos objects --bucket "$BUCKET" >/dev/null 2>&1 ;then
@@ -493,7 +544,7 @@ check_credential () {
 	else
 		error "Not able to get COS object details, Please check permission and ibmcloud plugin installed(COS)"
         failure=true
-		failed "Credential Check"
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
 		exit 1
 	fi
 	if ibmcloud is images >/dev/null 2>&1 ;then
@@ -501,54 +552,541 @@ check_credential () {
 	else
 		error "Not able to get custom image details, Please check permission and ibmcloud plugin installed(VPC)"
         failure=true
-		failed "Credential Check"
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
+		exit 1
+	fi
+	vpcid=`ibmcloud is vpcs | awk -v vpc=$VPC_NAME '$2 == vpc {print $1}'`
+	if [[ ! -z $vpcid ]];then
+		failure=false
+	else
+		error "VPC not found, Please check permission and vpc name"
+        failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
+		exit 1
+	fi
+	subnetid=`ibmcloud is subnets | awk -v subnet=$SUBNET_NAME '$2 == subnet {print $1}'` 
+	if [[ ! -z $subnetid ]];then
+		failure=false
+	else
+		error "Subnet not found, Please check permission and subnet name"
+        failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resourcek"
+		exit 1
+	fi
+	sshkeyid=`ibmcloud is keys | awk -v sshkey=$VSI_SSH_KEYNAME_NAME '$2 == sshkey {print $1}'`
+	if [[ ! -z $sshkeyid ]] ;then
+		failure=false
+	else
+		error "SSH key not found, Please check permission and sshkey name"
+        failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
+		exit 1
+	fi
+	subnetregion=`ibmcloud is subnets | awk -v subnet=$SUBNET_NAME '$2 == subnet {print $9}'`
+	regionzone=$(echo "$subnetregion" | grep -o -E '[0-9]+')
+	if [[ ! -z $regionzone ]] ;then
+		if ! [[ "$regionzone" =~ ^[0-9]+$ ]];then
+			failure=false
+		fi
+	else
+		error "Not able get region zone, Please check permission"
+        failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
+		exit 1
+	fi
+	regionzone="$REGION-$regionzone" 
+	if [[ "$regionzone" ==  "$subnetregion" ]] ;then
+		failure=false
+	else
+		error "Configred region($regionzone) and Subnet region($subnetregion) not same, Please check configuration file"
+        failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
+		exit 1
+	fi
+	imageexist=`ibmcloud is images | awk -v image=$CUSTOM_IMAGE_NAME '$2 == image {print $1}' `
+	if [[ -z $imageexist ]] ;then
+		failure=false
+	else
+		error "Custom image already exist with same name"
+		question "Are you re-running the migration script after failure or aborted or with new changes"
+		read userinput
+		if [[ "$userinput" == "y" ]];then
+			imageid=$imageexist
+        else
+			failure=true
+			error "Please change Custom image name and re-run the migration script"
+			failed "Checking Credential and Validating configuration with ibmcloud resource"
+			exit 1
+		fi
+	fi
+	vsiexist=`ibmcloud is instances | awk -v instance=$VSI_NAME '$2 == instance {print $1}'`
+	if [[ -z $vsiexist ]] ;then
+		failure=false
+	else
+		error "VSI already exist with same name"
+		logInfo "Please delete existing VSI or change the VSI name in config file"
+        failure=true
+		failed "Checking Credential and Validating configuration with ibmcloud resource"
 		exit 1
 	fi
 	if [[ "$failure" == "false" ]];then
-		passed "Credential Check"
+		passed "Checking Credential and Validating configuration with ibmcloud resource"
 	else
-		failed "Credential Check"
+		failed "Checking Credential and Validating configuration with ibmcloud resources"
 		exit 1
 	fi
 }
-
+# The following function will check vsi creation status.
+check_vsi (){
+	while [[ "$vsistatus" == "starting" ]] || [[ "$vsistatus" == "pending" ]]
+    do
+        logInfo "Creating vsi in progress... Status:- $vsistatus"
+		vsistatus=`ibmcloud is instance $vsiid | grep Status | awk '{ print $2 }'`
+		while [[ -z $vsistatus ]]
+		do
+			sleep 2s
+			logInfo "Re-trying to get VSI status"
+    		vsistatus=`ibmcloud is instance $vsiid | grep Status | awk '{ print $2 }'`
+		done
+		logInfo "Next update in 40 Seconds"
+    	sleep 40
+   	done
+    if [[ "$vsistatus" == "running" ]];then
+    	failure="false"
+		rm -rf $vsidetailstmp
+	else
+    	failure="true"
+	fi
+}
+# The following function will create gen2 vsi with custom image.
+create_vsi () {
+	failure="false"	 
+	if [[ ! -f  "$vsidetailstmp" ]]; then
+		logInfo "Creating vsi in progress..."
+		VSI_NAME=`echo $VSI_NAME | tr '[:upper:]' '[:lower:]'`
+		retrycountvsi=0
+		while [[ $retrycountvsi -le 10  ]] && [[ -z $vsiid ]]
+		do
+			if [[ $retrycountvsi -gt 0  ]];then
+				logInfo "Re-trying VSI creation"
+			fi
+			ibmcloud is instance-create $VSI_NAME $vpcid $regionzone $INSTANCE_PROFILE_NAME $subnetid --resource-group-id $RESOURCE_GROUP_ID --image-id $imageid --key-ids $sshkeyid > $vsidetailstmp
+			vsiid=`cat $vsidetailstmp | grep ID | grep -v -E "Image|VPC|Resource group|Boot volume" | awk '{print $2}'`
+			retrycountvsi=$((retrycountvsi + 1))
+			sleep 20s	
+		done
+		if [[ ! -z "$vsiid" ]]; then
+			while [[ -z $vsistatus ]]
+			do
+				sleep 2s
+				logInfo "Re-trying to get VSI status"
+    			vsistatus=`ibmcloud is instance $vsiid | grep Status | awk '{ print $2 }'`
+			done
+			check_vsi
+    	else
+        	failure="true"
+    	fi
+	elif [[ -f  "$vsidetailstmp" ]]; then
+		vsiid=`cat $vsidetailstmp | grep ID | grep -v -E "Image|VPC|Resource group|Boot volume" | awk '{print $2}'`
+		if [[ ! -z "$vsiid" ]]; then
+			while [[ -z $vsistatus ]]
+			do
+				sleep 2s
+				logInfo "Re-trying to get VSI status"
+    			vsistatus=`ibmcloud is instance $vsiid | grep Status | awk '{ print $2 }'`
+			done
+			check_vsi
+		elif [[ -z "$vsiid" ]]; then
+			rm -rf $vsidetailstmp
+			error "An error occured, Please re-run the script"
+    	else
+			
+        	failure="true"
+    	fi
+	else
+		failure="true"
+	fi
+    if [[ $failure = false ]] && [[ "$vsistatus" == "running" ]]; then
+		logInfo "VSI Name :- $VSI_NAME"
+		logInfo "VSI ID :- $vsiid"
+       	passed "Created VSI successful"
+	else
+    	failed "Creating VSI failed"
+	fi
+}
+install_ibmcloud_plugin()
+{
+	if [[ "$1" = "cos" ]] || [[ "$1" == "all" ]]; then
+		if [[ `ibmcloud plugin install cloud-object-storage -f` ]];then
+			passed "ibmcloud cos plugin installation successful"
+			if ibmcloud cos >/dev/null 2>&1 ;then
+    			failure=false
+				passed "ibmcloud cos plugin tested successful"
+			else
+				failed "ibmcloud cos plugin test not successful"
+				exit 1
+			fi
+		else
+			failed "ibmcloud cos plugin installation not successful"
+			exit 1
+		fi
+	fi
+	if [[ "$1" = "vpc" ]] || [[ "$1" == "all" ]]; then
+		if [[ `ibmcloud plugin install vpc-infrastructure -f` ]];then
+			passed "ibmcloud vpc plugin installation successful"
+			if ibmcloud is >/dev/null 2>&1 ;then
+    			failure=false
+				passed "ibmcloud vpc plugin tested successful"
+			else
+				error "Please re-run the migration script after ibmcloud cli login"
+				exit 1
+			fi
+		else
+			failed "ibmcloud vpc plugin installation not successful"
+			exit 1
+		fi
+	fi
+}
+install_ibmcloud_cli()
+{
+	if [[ `curl -fsSL https://clis.cloud.ibm.com/install/linux | sh` ]];then
+		if ibmcloud >/dev/null 2>&1 ;then
+    		failure=false
+			passed "ibmcloud cli installation successful"
+			install_ibmcloud_plugin all
+		else
+			failed "ibmcloud cli installation not successful"
+			exit 1
+		fi
+	fi
+}
+check_requisites_ibmcloud_cli()
+{
+	if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]] ; then
+		if rpm -q tar >/dev/null 2>&1 ; then
+			failure=false
+			install_ibmcloud_cli
+		else 
+			if [[ `yum install tar -y` ]];then
+				if rpm -q tar >/dev/null 2>&1 ; then
+					failure=false
+					install_ibmcloud_cli
+				else
+					failed "tar not found"
+					exit 1
+				fi
+			else
+				failed "tar not installed"
+				exit 1
+			fi
+		fi
+	elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]]; then
+		packstatus=`dpkg --get-selections | grep "^tar" | awk '{print $2}'`
+	    if [[ "$packstatus" = "install" ]]; then
+			packstatus=""
+			packstatus=`dpkg --get-selections | grep "^curl" | awk '{print $2}'`
+			if [[ "$packstatus" = "install" ]]; then
+				failure=false
+				install_ibmcloud_cli
+			else
+				if [[ `apt-get install curl -y` ]];then
+					packstatus=""
+					packstatus=`dpkg --get-selections | grep "^curl" | awk '{print $2}'`
+					if [[ "$packstatus" = "install" ]]; then
+						logInfo "Installed curl"
+						failure=false
+						install_ibmcloud_cli
+					else
+						failed "curl not found"
+						exit 1
+					fi
+				else
+					failed "curl not installed"
+					exit 1
+				fi
+			fi
+		else 
+			if [[ `apt-get install tar -y` ]];then
+				packstatus=`dpkg --get-selections | grep "^tar" | awk '{print $2}'`
+	        	if [[ "$packstatus" = "install" ]]; then
+					logInfo "Installed tar"
+					packstatus=""
+					packstatus=`dpkg --get-selections | grep "^curl" | awk '{print $2}'`
+					if [[ "$packstatus" = "install" ]]; then
+						failure=false
+						install_ibmcloud_cli
+					else
+						if [[ `apt-get install curl -y` ]];then
+							packstatus=""
+							packstatus=`dpkg --get-selections | grep "^curl" | awk '{print $2}'`
+							if [[ "$packstatus" = "install" ]]; then
+								logInfo "Installed curl"
+								failure=false
+								install_ibmcloud_cli
+							else
+								failed "curl not found"
+								exit 1
+							fi
+						else
+							failed "curl not installed"
+							exit 1
+						fi
+					fi
+				else
+					failed "tar not found"
+					exit 1
+				fi
+			else
+				failed "tar not installed"
+				exit 1
+			fi
+		fi	
+	elif [[ `sw_vers | grep "mac"` ]];then
+		if [[ `curl -fsSL https://clis.cloud.ibm.com/install/osx | sh` ]];then
+			if ibmcloud >/dev/null 2>&1 ;then
+    			failure=false
+				passed "ibmcloud cli installation successful"
+				install_ibmcloud_plugin all
+			else
+				failed "ibmcloud cli installation not successful"
+				exit 1
+			fi
+		fi
+	else
+		failed "Not supported os for migration script, so ibmcloud cli installation not successful"
+		exit 1
+	fi
+	
+}
+install_qemu()
+{
+	if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
+	    if [[ `yum update -y && yum -y install qemu-kvm` ]];then
+			if rpm -q qemu-kvm >/dev/null 2>&1 ; then
+				if which qemu-img >/dev/null 2>&1 ;then
+	    			failure=false
+					logInfo "Installation successful"
+			 		passed "Qemu-kvm installed"
+				else 
+            		failed "Qemu-kvm installation failed"
+					exit 1
+				fi
+			else
+				failed "Qemu-kvm installation failed"
+				exit 1
+			fi
+		else 
+            failed "Qemu-kvm installation failed"
+			exit 1
+		fi
+	elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
+        if [[ `apt-get update -y && apt-get install qemu-utils -y` ]];then
+            packstatus=`dpkg --get-selections | grep qemu-utils | awk '{print $2}'`
+	        if [[ "$packstatus" = "install" ]]; then
+				if which qemu-img >/dev/null 2>&1 ;then
+		        	logInfo "Installation successful"
+			 		passed "Qemu-utils installed"
+				else 
+            		failed "Qemu-utils installation failed"
+					exit 1
+				fi
+            else 
+                failed "Qemu-utils installation failed"
+				exit 1
+			fi
+		else 
+            failed "Qemu-utils installation failed"
+			exit 1
+		fi
+	elif [[ `sw_vers | grep "mac"` ]];then
+		if [[ `brew install qemu` ]];then
+			if which qemu-img >/dev/null 2>&1 ;then
+				logInfo "Installation successful"
+				passed "Qemu installed"
+			else 
+            	failed "Qemu installation failed"
+				exit 1
+			fi
+        else 
+            failed "Qemu installation failed"
+			exit 1	
+		fi
+	fi
+}
+check_requisite_migration_script()
+{
+	check_os_distro
+	if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
+		if rpm -q qemu-kvm >/dev/null 2>&1 ; then
+			if which qemu-img >/dev/null 2>&1 ;then
+	    		failure=false
+			fi
+    	else
+			install_qemu   
+    	fi
+	elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
+		packstatus=`dpkg --get-selections | grep qemu-utils | awk '{print $2}'`
+	    if [[ "$packstatus" = "install" ]]; then
+			if which qemu-img >/dev/null 2>&1 ;then
+				failure=false
+			fi
+    	else
+			install_qemu   
+    	fi
+	elif [[ `sw_vers | grep "mac"` ]];then
+		if which qemu-img >/dev/null 2>&1 ;then
+			logInfo "Installation successful"
+			passed "Qemu-kvm installed"
+		else 
+        	failed "Qemu-kvm installation failed"
+			exit 1
+		fi
+	fi
+	if ibmcloud >/dev/null 2>&1 ;then
+        failure=false
+    else
+		check_requisites_ibmcloud_cli
+    fi
+	if ibmcloud plugin list | grep cloud-object-storage >/dev/null 2>&1 ;then
+		if ibmcloud cos >/dev/null 2>&1 ;then
+        	failure=false
+			passed "ibmcloud cos plugin tested successful"
+		else
+			failed "ibmcloud cos plugin test not successful"
+		fi
+    else
+		install_ibmcloud_plugin cos
+    fi
+	if ibmcloud plugin list | grep vpc-infrastructure >/dev/null 2>&1 ;then
+		if ibmcloud is >/dev/null 2>&1 ;then
+        	failure=false
+			passed "ibmcloud vpc plugin tested successful"
+		else
+			error "Please re-run the migration script after ibmcloud cli login"
+			failed "ibmcloud vpc plugin test not successful"
+			exit 1
+		fi
+    else
+		install_ibmcloud_plugin vpc
+    fi
+}
+tmp_dir()
+{
+	if [[ -d "$tmpdir" ]];then
+		failure=false
+	else
+		mkdir $tmpdir
+	fi
+}
+rm_tmp_dir()
+{
+	if [ -d "$tmpdir" ]; then
+		if [ "$(ls -A $tmpdir)" ]; then
+     		tmp=false
+			if [[ -f "$customimagedetailstmp" ]]; then
+				imageid=`cat $customimagedetailstmp | grep ID | awk '{print $2}'`
+				if [[ -z "$imageid" ]];then
+					rm -rf $customimagedetailstmp
+				fi
+			fi
+			if [[ -f "$vsidetailstmp" ]]; then
+				vsiid=`cat $vsidetailstmp | grep ID | grep -v -E "Image|VPC|Resource group|Boot volume" | awk '{print $2}'`
+				if [[ -z "$vsiid" ]];then
+					rm -rf $vsidetailstmp
+				fi
+			fi
+			if [ "$(ls -A $tmpdir)" ]; then
+				rm -rf $tmpdir
+			fi
+		else
+    		rm -rf $tmpdir
+		fi
+	else
+		tmp=false
+fi
+}
 #----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------   SCRIPT START POINT  ------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------------------------------
+heading "Starting Migration Script"
+draw_line "-" 1
 logInfo "Please Make sure Network Reset and Sysprep completed in windows machine before proceeding migration"
 sleep 3s;
 
 welcome_note "This is a Migration script will help to convert image, upload image to cos, creates custom image and finally create vpc gen2 vsi with custom image."
 echo -e "\n"
 sleep 2s;
-
-#------------------------------------------ Check Config Starts here --------------------------------------------------------
-heading "1. Checking Configuration File, IBMCloud cli and Permissions "
+#------------------------------------------ Check migration script pre-requisites Starts here -------------------------------
+heading "1. Checking migration script pre-requisites"
+check_requisite_migration_script
+sleep 2s;
+#------------------------------------------ Check migration script pre-requisites Ends here ---------------------------------
+#------------------------------------------ Check Configuration Starts here --------------------------------------------------------
+heading "2. Checking Configuration File and Permissions "
 echo -e "\n"
 load_config
 echo -e "\n"
 sleep 2s;
-#------------------------------------------ Check Config Ends here ----------------------------------------------------------
+#------------------------------------------ Check Configuration Ends here ----------------------------------------------------------
+tmp_dir
 #------------------------------------------ Image Conversion Script Starts here ---------------------------------------------
-heading "2. Converting Image"
+heading "3. Converting Image"
 convert_image
 echo -e "\n"
 sleep 2s;
-#------------------------------------------ Image Conversion Script Ends here ----------------------------------------
+#------------------------------------------ Image Conversion Script Ends here -----------------------------------------------
 #------------------------------------------ Upload to COS Bucket Script Starts here -----------------------------------------
-heading "3. Uploading to COS Bucket"
+heading "4. Uploading to COS Bucket"
 sleep 2s;
 cos_upload_method
 #----------------------------------------- Image Conversion Script Ends here ------------------------------------------------
 #----------------------------------------- Create Custom Image Script Starts here -------------------------------------------
 if [[ "$objectstatus" == "$upload_object" ]];then
-	heading "4. Creating Custom image"
-	sleep 2s;
-	check_custom_image
+	if [[ -z $imageid ]] ;then
+		heading "5. Creating Custom image"
+		sleep 2s;
+		check_custom_image
+	elif [[ ! -z $imageid ]] && [[ "$convertuseropt" = "y" ]];then
+		heading "5. Creating Custom image"
+		sleep 2s;
+		delete_custom_image $imageid
+		sleep 2s;
+		check_custom_image
+	elif [[ ! -z $imageid ]];then
+		heading "5. Checking Custom image"
+		sleep 2s;
+		check_custom_image	
+	else
+		failure=false
+	fi
 fi
 #----------------------------------------- Create Custom Image Script Ends here ---------------------------------------------
+#----------------------------------------- Create VSI Script Starts here ----------------------------------------------------
+if [[ "$imgstatus" = "available" ]];then
+	if [[ -f $vsidetailstmp ]];then
+		vsiid=`cat $vsidetailstmp | grep ID | grep -v -E "Image|VPC|Resource group|Boot volume" | awk '{print $2}'`
+		if [[ -z $vsiid ]];then
+			rm -rf $vsidetailstmp
+			heading "6. Creating VPC GEN2 VSI with Custom image(Migrated)"
+			create_vsi
+		else
+			heading "6. Checking VPC GEN2 VSI with Custom image(Migrated)"
+			vsistatus=`ibmcloud is instance $vsiid | grep Status | awk '{ print $2 }'`
+			check_vsi
+		fi
+	else	
+    	failure="false"
+		heading "6. Creating VPC GEN2 VSI with Custom image(Migrated)"
+		sleep 2s;
+		create_vsi
+	fi
+else
+    failure="true"
+fi
+#----------------------------------------- Create VSI Script Ends here ------------------------------------------------------
 #----------------------------------------- End of the Script ----------------------------------------------------------------
-welcome_note "   SUMMARY of the Pre-validated script "
+welcome_note "   Summary of the migration script "
 printf "$summary"
+rm_tmp_dir
 footer
 #----------------------------------------- End of the Script ----------------------------------------------------------------
