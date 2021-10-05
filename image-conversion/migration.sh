@@ -243,7 +243,6 @@ convert_to_qcow2 () {
         failed "Image conversion failed"
         exit 1
     fi
-
 }
 # The following function will check and create variables for image convertion based on format and also checks whether already exist.
 convert_image () {
@@ -470,7 +469,6 @@ create_custom_image (){
         failed "Create Custom image failed"
     fi 
 }
-
 # The following function will create custom image with uploaded qcow2 file.
 check_custom_image () {
 	failure="false"

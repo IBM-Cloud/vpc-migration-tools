@@ -338,10 +338,6 @@ check_virtio_drivers_dependencies()
           	failure=true
             error "Virtio driver missing : virtio_blk"
         fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "net/virtio_net"` ]];then
-          	failure=true
-            error "Virtio driver missing : virtio_net"
-        fi
         if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
             failure=true
             error "Virtio driver missing : virtio_pci.ko"
@@ -950,26 +946,14 @@ check_and_install_drivers ()
     fi
     echo -e "\n\n"
 }
-#spinner for progress
-spin() 
-{
-    printf "\b${sp:sc++:1}"
-    ((sc==${#sp})) && sc=0
-}
-endspin() 
-{
-    printf "\r%s\n" "$@"
-}
 #install guestfs library for secondary volume migration
 install_libguestfs-virtd_service()
 {   
     if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
-        #spin
         if [[ `yum update -y && yum -y install libguestfs-tools` ]];then
             if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
 		        logInfo "libguestfs-tools installation successfull"
                 passed "libguestfs-tools installed"
-                #endspin
             else
                 failed "libguestfs-tools installation Failed"
             fi
