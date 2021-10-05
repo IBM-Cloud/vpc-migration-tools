@@ -11,10 +11,9 @@
 #
 # Script Name : Pre_check_and_configuring.sh
 # Modified and added new features By : Robert.Ebenezer.Bhakiyaraj.S@ibm.com
-# Create Date : 30 Mar 2021
 # Version: 2.0
 # This script will check all pre-requisites for linux operating systems.
-# New Features :- disk size check, ssh check, network check, summary, virtio driver installation, guestfs library installation
+# New Features :- disk size check, ssh check, network check.
 # Modified logic :- cloud-init, Kernel parameter, virtio drivers and fstab check(FileSystem check)
 # If any configuration is missing it will configure and if any package is missing it will install
 #-------------------------------------------------------------------------------------------------------------------------
@@ -78,9 +77,6 @@ declare -A COMMAND_LIST=(
 )
 #summary variable initialization
 summary=""
-failedcount=()
-passedcount=()
-failedsummary=""
 
 ### Function Declaration
 
@@ -146,7 +142,7 @@ footer () {
     echo -e "\n\n\n"
     draw_line "-" 1
     display "END OF THE SCRIPT" $RED
-    draw_line "-" 2 $GREEN
+    draw_line "-" 2 $RED
     echo -e "\n\n\n"
 }
 # The following function will be used to print any question with y/n option.
@@ -182,10 +178,9 @@ passed () {
     printf "$1";
     printf "$GREEN\033[${TOTAL_COL_10}G%s$NC\n" "[PASSED]"
     summary="${summary}$1 $GREEN\033[${TOTAL_COL_10}G[PASSED]$NC\n"
-    passedcount+=('passed')
     for ((i=0; i<TOTAL_COLUMN; i++));
     do 
-       summary="$summary$GREEN-$NC";
+       summary="$summary$GREEN-$NC"; 
     done;
     draw_line "-"
 }
@@ -196,12 +191,9 @@ failed () {
     printf "$1";
     printf "$RED\033[${TOTAL_COL_10}G%s$NC\n" "[FAILED]"
     summary="${summary}$1 $RED\033[${TOTAL_COL_10}G[FAILED]$NC\n"
-    failedsummary="${failedsummary}$1 $RED\033[${TOTAL_COL_10}G[FAILED]$NC\n"
-    failedcount+=('failed')
     for ((i=0; i<TOTAL_COLUMN; i++));
     do 
-       summary="$summary$GREEN-$NC";
-       failedsummary="$failedsummary$GREEN-$NC";
+       summary="$summary$GREEN-$NC"; 
     done;
     draw_line "-" 1
 }
@@ -235,7 +227,7 @@ verOSComp (){
 	  return 2
   fi
 }
-#OS Version comparison with minimum version requirement
+
 verComp () {
     if [[ $1 == $2 ]]
     then
@@ -307,7 +299,7 @@ check_os_distro () {
 # If any kernel parameters are missing then it will print error message for the missing parameter
 # and will print the passed or failed messages correspondingly.
 check_kernel_param () {
-	if grep -q "nomodeset nofb vga=normal console=tty1 console=ttyS0" "/etc/default/grub"; then
+	if grep -q "nomodeset nofb vga=normal console=ttyS0" "/etc/default/grub"; then
         passed "Already Kernel Parameter configured"
 	else
         error "Kernel Parameter Not configured"
@@ -316,156 +308,129 @@ check_kernel_param () {
 		logInfo "Adding Kernel Parameter in grub file" 
         sed -i '/GRUB_CMDLINE_LINUX/d' /etc/default/grub 
 		if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
-			echo 'GRUB_CMDLINE_LINUX="crashkernel=auto spectre_v2=retpoline rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet nomodeset nofb vga=normal console=tty1 console=ttyS0"' >> /etc/default/grub
-        elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
+			echo 'GRUB_CMDLINE_LINUX="crashkernel=auto spectre_v2=retpoline rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet nomodeset nofb vga=normal console=ttyS0"' >> /etc/default/grub
+		elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
 			echo 'GRUB_CMDLINE_LINUX_DEFAULT="quiet"' >> /etc/default/grub 
-			echo 'GRUB_CMDLINE_LINUX="find_preseed=/preseed.cfg noprompt nomodeset nofb vga=normal console=tty1 console=ttyS0"' >> /etc/default/grub
-        fi
+			echo 'GRUB_CMDLINE_LINUX="find_preseed=/preseed.cfg noprompt nomodeset nofb vga=normal console=ttyS0"' >> /etc/default/grub
+		fi
 		logInfo "Re-checking Kernel Parameter"
-        if grep -q "nomodeset nofb vga=normal console=tty1 console=ttyS0" "/etc/default/grub"; then
-            passed "Kernel Parameter configured"
+        if grep -q "nomodeset nofb vga=normal console=ttyS0" "/etc/default/grub"; then
+                	passed "Kernel Parameter configured"
 		else
 			failed "Failed to configure Kernel Parameter"
         fi
     fi
 }
-#Checking virtio driver module loaded or not
+
 check_virtio_drivers_dependencies()
-{ 
-    if [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
-       	failure=false
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
-          	failure=true
-            error "Virtio driver missing : virtio_blk"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_pci.ko"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio.ko"` ]];then
-           	failure=true
-            error "Virtio driver missing : virtio.ko"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_ring"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_ring"
-        fi
-    elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
-	   	failure=false
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_blk"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "net/virtio_net"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_net"
-        fi
-	    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_pci.ko"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio.ko"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_ring"
-        fi
-    elif [[ "$DISTRO" == "ubuntu" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        failure=false
-		if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "block/virtio_blk"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_blk"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "net/virtio_net"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_net"
-        fi
-	    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_pci.ko"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio.ko"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_ring"
-        fi
-	elif [[ "$DISTRO" == "ubuntu" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        failure=false
-		if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_blk"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "net/virtio_net"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_net"
-        fi
-	    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_pci.ko"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio.ko"
-        fi
-        if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_ring"
-        fi
-    elif [[ "$DISTRO" == "debian" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        failure=false
-		if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_blk"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "net/virtio_net"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_net"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_pci.ko"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio  | grep -E "virtio/virtio.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio.ko"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio  | grep -E "virtio/virtio_ring"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_ring"
-        fi
-    elif [[ "$DISTRO" == "debian" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        failure=false
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_blk"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "net/virtio_net"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_net"
-        fi
-	    if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_pci.ko"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio  | grep -E "virtio/virtio.ko"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio.ko"
-        fi
-        if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio  | grep -E "virtio/virtio_ring"` ]];then
-            failure=true
-            error "Virtio driver missing : virtio_ring"
-        fi
-    else
-        logInfo "OS not supported"
+{
+    failure=false
+    if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
+       	failure=true
+    fi
+    if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
         failure=true
-    fi    
+    fi
+    if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio.ko"` ]];then
+        failure=true
+    fi
+    if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_ring"` ]];then
+        failure=true
+    fi
+    if [[ "$failure" == "true" ]];then   
+	    if [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
+	       	failure=false
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
+               	failure=true
+            fi
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
+                    failure=true
+            fi
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio.ko"` ]];then
+               	failure=true
+            fi
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_ring"` ]];then
+                failure=true
+            fi
+        elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
+	       	failure=false
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
+                failure=true
+            fi
+		    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
+                failure=true
+            fi
+        elif [[ "$DISTRO" == "ubuntu" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
+            failure=false
+	    	if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "block/virtio_blk"` ]];then
+                failure=true
+            fi
+		    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
+                failure=true
+            fi
+	    elif [[ "$DISTRO" == "ubuntu" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
+            failure=false
+	    	if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
+                failure=true
+            fi
+		    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
+                failure=true
+            fi
+	    elif [[ "$DISTRO" == "debian" ]] && [[ "$DistroVer" -le "${DISTRO_LIST[$DISTRO]}" ]] ;then
+            failure=false
+	    	if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
+                failure=true
+            fi
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "virtio/virtio_pci.ko"` ]];then
+                    failure=true
+            fi
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio  | grep -E "virtio/virtio.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio  | grep -E "virtio/virtio_ring"` ]];then
+                failure=true
+            fi
+        elif [[ "$DISTRO" == "debian" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
+            failure=false
+            if [[ ! `lsinitrd /boot/initramfs-$(uname -r).img | grep virtio | grep -E "block/virtio_blk"` ]];then
+                failure=true
+            fi
+		    if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_pci.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio.ko"` ]];then
+                failure=true
+            fi
+            if [[ ! `grep -E "virtio.*" < /lib/modules/"$(uname -r)"/modules.builtin | grep -E "virtio/virtio_ring"` ]];then
+                failure=true
+            fi
+        else
+            logInfo "OS not supported"
+            failure=true
+        fi 
+    fi   
     echo $failure
+
 }
+
 # The following function will preload Virtio Drivers in temp kernel. 
 # If any Virtio drivers are missing then it will print error message for the missing parameter
 # and will print the passed or failed messages correspondingly.
@@ -478,66 +443,7 @@ preload_virtio_driver()
             --with=virtio_console --preload=virtio_console \
             /boot/initramfs-$(uname -r).img $(uname -r)
 }
-#configure dracut configuration with required module to load in kernel
-config_dracut()
-{   
-    if [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]];then
-        cp -avf /etc/dracut.conf /etc/dracut.conf-backup  2> /dev/null
-        sed -i '/add_drivers+=/d' /etc/dracut.conf
-        sed -i '/force_drivers+=/d' /etc/dracut.conf
-        echo "force_drivers+=\"virtio_blk virtio_net virtio_pci virtio_ring virtio\"" >>  /etc/dracut.conf
-        dracut -f --regenerate-all
-    elif [[ "$DISTRO" == "ubuntu" ]];then
-        cp -avf /etc/dracut.conf.d/10-debian.conf /etc/dracut.conf.d/10-debian.conf-backup  2> /dev/null
-        sed -i '/add_drivers+=/d' /etc/dracut.conf.d/10-debian.conf
-        sed -i '/force_drivers+=/d' /etc/dracut.conf.d/10-debian.conf
-        echo "force_drivers+=\"virtio_blk virtio_net virtio_pci virtio_ring virtio\"" >>  /etc/dracut.conf.d/10-debian.conf
-        dracut -f --regenerate-all
-    elif [[ "$DISTRO" == "debian" ]];then
-        cp -avf /etc/dracut.conf.d/10-debian.conf /etc/dracut.conf.d/10-debian.conf-backup  2> /dev/null
-        sed -i '/add_drivers+=/d' /etc/dracut.conf.d/10-debian.conf
-        sed -i '/force_drivers+=/d' /etc/dracut.conf.d/10-debian.conf
-        echo "force_drivers+=\"virtio_blk virtio_net virtio_pci virtio_ring virtio\"" >>  /etc/dracut.conf.d/10-debian.conf
-        dracut -f --regenerate-all
-    fi
-}
-#check installation of dracut package for virtio module
-check_install_dracut()
-{
-    if [[ "$DISTRO" == "centos" || "$DISTRO" == "rhel" ]];then
-        if rpm -q dracut  >/dev/null 2>&1; then
-    		logInfo "Package is already installed!"
-            config_dracut
-        else
-            if [[ `yum -y install dracut` ]];then
-                if rpm -q dracut  >/dev/null 2>&1; then
-    		        logInfo "Package is installed!"
-                    logInfo "Installation successfull"
-                    config_dracut
-                else
-                    logInfo "Installation not successfull"
-                fi
-            fi
-        fi
-    elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
-        packstatus=`dpkg --get-selections | grep dracut-core | awk '{print $2}'`
-	    if [[ "$packstatus" = "install" ]]; then
-    		logInfo "Package is already installed!"
-            config_dracut
-        else
-            if [[ `apt-get install dracut-core -y` ]];then
-                packstatus=`dpkg --get-selections | grep dracut-core | awk '{print $2}'`
-	            if [[ "$packstatus" = "install" ]]; then
-    		        logInfo "Package is installed!"
-                    logInfo "Installation successfull"
-                    config_dracut
-                else
-                    logInfo "Installation not successfull"
-                fi
-            fi
-        fi
-    fi
-}
+
 # The following function will check Virtio Drivers. 
 # If any Virtio drivers are missing then it will print error message for the missing parameter
 # and will print the passed or failed messages correspondingly.
@@ -573,35 +479,15 @@ check_virtio_drivers ()
 	        failure=$(check_virtio_drivers_dependencies)
 	        if [[ "$failure" == "false" ]];then
                 failure=false
-                success "Virtio Module loaded"
+                passed "Virtio Module loaded"
             else
-                error "Virtio Module Not Loaded"
-			    logInfo "Attempting to load Virtio Module"
-                check_install_dracut
+                failure=true
+                failed "Virtio Module Not Loaded"
             fi
-            #re-checking
-            failure=$(check_virtio_drivers_dependencies)
-            if [[ "$failure" == "false" ]];then
-			    failure=false
-			    passed "Virtio Module loaded"
-		    else
-			    failure=true
-			    failed "Virtio Module Not Loaded"
-		    fi
         elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
     	    failure=$(check_virtio_drivers_dependencies)
             if [[ "$failure" == "false" ]];then
 		        failure=false
-                success "Virtio Module loaded"
-            else
-                error "Virtio Module Not Loaded"
-			    logInfo "Attempting to load Virtio Module"
-                check_install_dracut
-            fi
-            #re-checking
-            failure=$(check_virtio_drivers_dependencies)
-            if [[ "$failure" == "false" ]];then
-			    failure=false
 			    passed "Virtio Module loaded"
 		    else
 			    failure=true
@@ -649,27 +535,14 @@ check_cloud_init_config (){
             sed -i '/ - scripts-user/a\ - scripts\-vendor' /etc/cloud/cloud.cfg
 		    cloudInitFlag=false
 	    else
-	        cloudInitFlag=true
-	        error "/etc/cloud/cloud.cfg not found"
+	       cloudInitFlag=true
+	       error "/etc/cloud/cloud.cfg not found"
         fi
         passed "scripts-vendor configuration has been fixed."
     else
 	    cloudInitFlag=false
         passed "Cloud-init Config Check: Module \"scripts-vendor\" is found."
     fi
-}
-remove_cloud_init (){
-    logInfo "Already cloud-init exist and will be removed and cleaned"
-    DistroVer=`echo $DISTRO_VERSION | cut -f1 -d"."`
-    if [[ "$DISTRO" == "ubuntu" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        if [[ `sudo apt-get remove cloud-init -y && sudo apt-get purge cloud-init -y && sudo rm -rf /etc/cloud/ && sudo rm -rf /var/lib/cloud/` ]];then
-            packstatus=`dpkg --get-selections | grep cloud-init | awk '{print $2}'`
-	        if [[ ! "$packstatus" = "install" ]]; then
-		        logInfo "Removed and cleaned successfull"
-            fi
-        fi
-    fi
-
 }
 # The following function will check cloud-init installation and configuration. 
 # If it is not installed then it will install cloud init. if some configurations are missing then 
@@ -680,17 +553,13 @@ check_cloud_init (){
     # Determine if cloud-init is installed and its filepath
     cloud_init_status=`cloud-init --version 2>&1`
     if [ $? -eq 0 ]; then
-        remove_cloud_init
-    fi
-    cloud_init_status=`cloud-init --version 2>&1`
-    if [ $? -eq 0 ]; then 
         cloud_init=`[[ $cloud_init_status =~ "ExecStart="([^[:space:]]+)[[:space:]]* ]] && echo ${BASH_REMATCH[1]}`
         cloud_init_version=`${cloud_init} --version 2>&1 | cut -d' ' -f2 | cut -d'-' -f1`
     fi
     # Check that cloud-init is installed and meets the minimum version requirement
     if [ -z "$cloud_init_version" ]; then
         cloudInitFlag=true
-        logInfo "Cloud Init is not installed.";
+        error "Cloud Init is not installed.";
         logInfo "Installing cloud-init and configuring it." 
         eval "${COMMAND_LIST[$DISTRO]}"
         if [[ $? -eq 0 ]]; then
@@ -744,11 +613,11 @@ check_secondary () {
             mark=`basename "$mark"`
             if sed -i "/$mark/d" $filepath 2> /dev/null
             then
-                failure=false
-                success "Removed entry $mark from $filepath"
+                    failure=false
+                    success "Removed entry $mark from $filepath"
             else
-                failure=true
-                error "Not able to remove $mark from $filepath"
+                    failure=true
+                    error "Not able to remove $mark from $filepath"
             fi
         done
         secondary_volumes=($(cat $filepath | grep -v ^\# | awk '$2 != "/" && $2 != "/boot" {print $1}'));
@@ -763,33 +632,30 @@ check_secondary () {
 #The following function will check whether disk size is smaller than 100GB
 check_disk_size(){
 	heading "5. Disk Size Check"
-    if [[ "$DISTRO" == "rhel" ]] && [[ "$DistroVer" -gt "${DISTRO_LIST[$DISTRO]}" ]] ;then
-        diskname=`eval $(lsblk -oMOUNTPOINT,PKNAME -P | grep 'MOUNTPOINT="/"'); echo $PKNAME | sed 's/[0-9]*$//' | sed 's/[p]*$//'`
-    else
-	    diskname=`eval $(lsblk -oMOUNTPOINT,PKNAME -P | grep 'MOUNTPOINT="/"'); echo $PKNAME | sed 's/[0-9]*$//'`
-    fi
-	actualsize=`lsblk -l -oTYPE,NAME,SIZE | grep disk | grep $diskname | awk '{print $3}' | sed 's/.$//'`
-    size=`echo $actualsize | cut -f1 -d"."`
-	logInfo "Accepted Disk Size less than 99GB"
-	if [ "$size" -lt 99 ]
+	diskname=`eval $(lsblk -oMOUNTPOINT,PKNAME -P | grep 'MOUNTPOINT="/"'); echo $PKNAME | sed 's/[0-9]*$//'`
+	size=`lsblk -l -oTYPE,NAME,SIZE | grep disk | grep $diskname | awk '{print $3}' | sed 's/.$//'`
+	logInfo "Accepted Disk Size less than 100GB"
+	if [ "$size" -lt 100 ]
 	then
-		passed "OS File system disk size is $actualsize GB and Accepted"
+		passed "OS File system disk size is $size GB and Accepted"
 	else
-		failed "OS File system disk size should be smaller than 99GB"
+		failed "OS File system disk size should be smaller than 100GB"
 	fi
 }
 #The following function will check and configure ssh
 ssh_config ()
 {
     logInfo "Checking for ssh configuration"
-    if [[ -d "/root/.ssh/" ]];then
-        if [[ -f "/root/.ssh/authorized_keys" ]];then
-            chmod 700 /root/.ssh
-            chmod 600 /root/.ssh/*
+    if [[ -d "/root/.ssh/" ]]
+    then
+        if [[ -f "/root/.ssh/authorized_keys" ]]
+        then
+                chmod 700 /root/.ssh
+                chmod 600 /root/.ssh/*
         else
-            touch /root/.ssh/authorized_keys
-            chmod 700 /root/.ssh
-            chmod 600 /root/.ssh/*
+                touch /root/.ssh/authorized_keys
+                chmod 700 /root/.ssh
+                chmod 600 /root/.ssh/*
         fi
     else
         mkdir /root/.ssh
@@ -868,39 +734,40 @@ check_install_and_service_ssh(){
 	    fi
     fi
 }
-# The following function will check DHCP configuration
-check_DHCP ()
+# The following function will check dhcp configuration
+check_dhcp ()
 {
 heading "7. Check for DHCP"
 netarr=()
 if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
 	for net in  $(ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}');do
+		#if [[ `cat /etc/sysconfig/network-scripts/ifcfg-$net | grep -P "^(?=[\s]*+[^#])[^#]*(BOOTPROTO=dhcp)"` ]];then 
         if [[ `ip -4 addr show $net | grep dynamic` ]];then
-			logInfo "DHCP configured in $net"
+			logInfo "dhcp configured in $net"
 			netarr+=("true")
 		else
-			logInfo "DHCP not configured for $net"
+			logInfo "dhcp not configured for $net"
 			netarr+=("false")
 		fi
 	done
 elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
     for net in  $(ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}');do
 		if [[ `ip -4 addr show $net | grep dynamic` ]];then
-			logInfo "DHCP configured in $net"
+			logInfo "dhcp configured in $net"
 			netarr+=("true")
 		else
-			logInfo "DHCP not configured for $net"
+			logInfo "dhcp not configured for $net"
 			netarr+=("false")
 		fi
 	done
     if [[ "${netarr[*]}" == *"false"* ]]; then
 	    for net in  $(ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}');do
-        	ifaceNet=`cat /etc/network/interfaces | grep "iface $net"`
-        	if [[ "$ifaceNet" == *"dhcp"* ]];then
-                	logInfo "DHCP configured in $net"
+        	ifacenet=`cat /etc/network/interfaces | grep "iface $net"`
+        	if [[ "$ifacenet" == *"dhcp"* ]];then
+                	logInfo "dhcp configured in $net"
                 	netarr+=("true")
         	else
-                	logInfo "DHCP not configured for $net"
+                	logInfo "dhcp not configured for $net"
                 	netarr+=("false")
         	fi
 	    done
@@ -912,12 +779,12 @@ elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
             for file in *; do
                 if [[ ! -d "$file" ]];then
                     echo $file
-                    ifaceNet=`cat $file | grep "iface $net"`
-        	        if [[ "$ifaceNet" == *"dhcp"* ]];then
-                	    logInfo "DHCP configured in $net"
+                    ifacenet=`cat $file | grep "iface $net"`
+        	        if [[ "$ifacenet" == *"dhcp"* ]];then
+                	    logInfo "dhcp configured in $net"
                 	    netarr+=("true")
         	        else
-                	    logInfo "DHCP not configured for $net"
+                	    logInfo "dhcp not configured for $net"
                 	    netarr+=("false")
         	        fi
                 fi
@@ -928,13 +795,12 @@ fi
 if [[ "${netarr[*]}" == *"true"* ]]; then
     passed "DHCP Configuration Present"
 else
-    failed "DHCP Not Configured, Please make sure that at least one network interface is set to auto-configure (DHCP)"
+    failed "DHCP Not Configured, Please make sure that at least one network interface is set to auto-configure (dhcp)"
     
 fi
 }
 # The following function will check and install the Virtio Drivers
-check_and_install_drivers () 
-{
+check_and_install_drivers () {
     failure=false
     heading "3. Virtio Drivers Check"
     check_kernel_param
@@ -945,109 +811,75 @@ check_and_install_drivers ()
         failed "Virtio Drivers Check"
     fi
     echo -e "\n\n"
-}
-#install guestfs library for secondary volume migration
-install_libguestfs-virtd_service()
-{   
-    if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
-        if [[ `yum update -y && yum -y install libguestfs-tools` ]];then
-            if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
-		        logInfo "libguestfs-tools installation successfull"
-                passed "libguestfs-tools installed"
-            else
-                failed "libguestfs-tools installation Failed"
-            fi
-        else
-            failed "libguestfs-tools installation Failed"
-        fi
-    elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
-        if [[ `apt-get update -y && apt-get install libguestfs-tools -y` ]];then
-            packstatus=`dpkg --get-selections | grep libguestfs-tools | awk '{print $2}'`
-	        if [[ "$packstatus" = "install" ]]; then
-		        logInfo "libguestfs-tools installation successfull"
-                passed "libguestfs-tools installed"
-            else 
-                failed "libguestfs-tools installation Failed"
-            fi
-		else
-		    failed "libguestfs-tools installation Failed"
-        fi
-    fi        
-}
-#start guestfs service for secondary volume migration
-start_enable_libguestfs-virtd_service()
-{
-    if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
-        if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
-        	logInfo "libvirtd is running"
-        	systemctl enable libvirtd
-			passed "libvirtd running"
-    	else
-        	logInfo "libvirtd Not running and Starting now"
-        	systemctl start libvirtd
-        	systemctl enable libvirtd
-			passed "libvirtd running"
-    	fi
-    fi
-}
-#check guestfs library installed or not and service running or not used for secondary volume migration
-check_libguestfs-virtd()
-{
+    }
+check_install_and_service_libguestfs-virtd(){
+    heading "8. Check libguestfs Installation"
     if [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]];then
 	    if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
-            if systemctl status libvirtd | grep running >/dev/null 2>&1 ;then
-                failure=false
-            else
-                question "Do you want to start guestfs service which is used in secondary volume migration"
-	            read userinput
-	            if [[ "$userinput" == "y" ]];then
-                    heading "8. Check libguestfs Installation"
-		            start_enable_libguestfs-virtd_service
-	            fi
-            fi
-        else
-            question "Do you want to install guestfs library which is used in secondary volume migration"
-	        read userinput
-	        if [[ "$userinput" == "y" ]];then
-                heading "8. Check libguestfs Installation"
-		        install_libguestfs-virtd_service
-                start_enable_libguestfs-virtd_service
-	        fi
-        fi
+    		logInfo "Package is installed!"
+		    passed "libguestfs-tools already installed"
+    		if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
+        		logInfo "libvirtd is running"
+        		systemctl enable libvirtd
+			    passed "libvirtd running"
+    		else
+        		logInfo "libvirtd Not running and Starting now"
+        		systemctl start libvirtd
+        		systemctl enable libvirtd
+			    passed "libvirtd running"
+    		fi
+	    else
+    		error "Package is NOT installed!"
+    		logInfo "Installing libguestfs-tools"
+    		if [[	`yum update -y && yum -y install libguestfs-tools` ]];then
+                if rpm -q libguestfs-tools >/dev/null 2>&1 ; then
+			        logInfo "Installation successfull"
+			        passed "libguestfs-tools installed"
+    			    if [[ `systemctl status libvirtd | grep "active (running)"` ]];then
+        			    logInfo "libvirtd is running"
+        			    systemctl enable libvirtd
+				        passed "libvirtd running"
+    			    else
+				        logInfo "Starting libvirtd"
+        			    systemctl start libvirtd
+        			    systemctl enable libvirtd
+				        passed "libvirtd running"
+    			    fi
+                else
+                    failed "Installed Failed"
+                fi
+		    else
+			    failed "Installed Failed"
+		    fi
+	    fi
     elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]];then
 	    packstatus=`dpkg --get-selections | grep libguestfs-tools | awk '{print $2}'`
 	    if [[ "$packstatus" = "install" ]]; then
-            failure=false
-        else
-            question "Do you want to install guestfs library which is used in secondary volume migration"
-	        read userinput
-	        if [[ "$userinput" == "y" ]];then
-                heading "8. Check libguestfs Installation"
-		        install_libguestfs-virtd_service
-	        fi
-        fi
+    		logInfo "Package  is installed!"
+            passed "libguestfs-tools already installed"
+	    else
+    		error "Package  is NOT installed!"
+    		if [[ `apt-get update -y && apt-get install libguestfs-tools -y` ]];then
+                packstatus=`dpkg --get-selections | grep libguestfs-tools | awk '{print $2}'`
+	            if [[ "$packstatus" = "install" ]]; then
+			        logInfo "Installation successfull"
+                    passed "libguestfs-tools installed"
+                else
+                    failed "Installation Failed"
+                fi
+		    else
+			    failed "Installation Failed"
+		    fi 
+	    fi
     fi
 }
-summary_report()
-{
-    welcome_note "   Summary of the pre-validated script "
-    printf "$summary"
-    echo -e "\n"
-    heading "   Summary report "
-    echo -e "\n"
-    total=$((${#passedcount[@]} + ${#failedcount[@]}))
-    printf "(  $RED${#failedcount[@]} $NC failed out of $YELLOW$total $NC )"
-    echo -e "\n"
-    if [[ ${#failedcount[@]} -ne 0 ]];then
-        echo "Following checks failed : -"
-        echo -e "\n"
-        printf "$failedsummary"
-    else
-        echo "All pre-requisite checks passed"
-    fi
-    echo -e "\n"
-    draw_line "*" 
-    
+check_user_secondary_volume_migration(){
+	question "Do you want to install guestfs library which is used in secondary volume migration"
+	read userinput
+	if [[ "$userinput" == "y" ]];then
+		check_install_and_service_libguestfs-virtd
+	fi
+
 }
 #---------------------------------------------------------------------------------------------------
 #----------------------------          SCRIPT START POINT           --------------------------------
@@ -1081,12 +913,13 @@ check_disk_size
 check_install_and_service_ssh
 #-------------------------------- Checking ssh  Script Ends here -----------------------------------
 #-------------------------------- Checking DHCP  Script starts here --------------------------------
-check_DHCP
+check_dhcp
 #-------------------------------- Checking DHCP  Script End here -----------------------------------
-#-------------------------------- Check Secondary volume migration requisite starts here ------
-check_libguestfs-virtd
-#-------------------------------- Check Secondary volume migration requisite End here --------
+#-------------------------------- Check Secondary volume migration with user inputstarts here ------
+check_user_secondary_volume_migration
+#-------------------------------- Check Secondary volume migration with user input End here --------
 #-------------------------------- End of the Script ------------------------------------------------
-summary_report
+welcome_note "   SUMMARY of the Pre-validated script "
+printf "$summary"
 footer
 #-------------------------------- End of the Script ------------------------------------------------
