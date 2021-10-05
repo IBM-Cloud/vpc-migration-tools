@@ -1,8 +1,8 @@
 # Precheck Scripts
 There are a set of minimum requirements that the image must meet when you migrate a virtual/guest machine to IBM Cloud as a custom image. 
 More information can be found at the following links:
-     - [Importing and managing custom images](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images)
-     - [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vpc)
+- [Importing and managing custom images](https://cloud.ibm.com/docs/vpc?topic=vpc-managing-images)
+- [Migrating VMware (VMDK) images to VPC](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vpc)
 
 It is highly recommended to test the pre-check scripts on a clone of the virtual/guest machine before using it on a production system.
 
@@ -31,15 +31,14 @@ To execute the script, run the following command as root user:
 
 ## FAQ
 1. How do I resolve SSH failure?
-   a. Make sure that default repo is enabled.
-   b. Make sure that you have a good internet connection.
-   c. Make sure that public keys are correctly placed to their respective host.
-   d. Make sure that a firewall is not blocking the SSH connection.
+<br>a. Make sure that default repo is enabled.
+<br>b. Make sure that you have a good internet connection.
+<br>c. Make sure that public keys are correctly placed to their respective host.
+<br>d. Make sure that a firewall is not blocking the SSH connection.
     
 2. How do I resolve FSTAB check failure? 
-<br>
-   a. Add `nofail` to all entries in fstab file but for `/` and `/boot`.
-   b. OR remove all entries but `/` and `/boot`.
+<br>a. Add `nofail` to all entries in fstab file but for `/` and `/boot`.
+<br>b. OR remove all entries but `/` and `/boot`.
 
 3. How do I resolve network check failure?
 <br>Make sure at-least one network adapter is configured to get the ip address using DHCP. 
@@ -56,7 +55,8 @@ To execute the script, run the following command as root user:
 7. Post migration, How do I resolve Guestfs (libguestfs-tools) installation failure in centos 8 ?
 <br>Run the following command to resolve repo-related errors in centos 8 after migration.
 <br>`sed -i 's/mirrors.service.networklayer.com/mirrors.adn.networklayer.com/g' /etc/yum.repos.d/CentOS*`
-# WindowsResource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
+# Windows
+Resource: [Creating a Window custom image](https://cloud.ibm.com/docs/vpc?topic=vpc-create-windows-custom-image)
 
 If you are looking to build a new Windows system image to be imported to IBM Cloud VPC, this PowerShell script will check and install some of the required pieces that are needed by IBM CloudVPC.
 **Note:** DO NOT use this PowerShell script with the VPC+ Cloud Migration tool. The VPC+ Cloud Migration tool can migrate Windows VSI without the need of this script. The script checks the following:
