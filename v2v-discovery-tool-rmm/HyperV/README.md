@@ -4,7 +4,7 @@
 
 #### Overview
 
-The Discovery tool automates the discovery of Hyper-V virtual machine(s) settings for the RacWware RMM migration tool. By using the System Center Virtual Machine Manager (SCVMM) PowerShell cmdlets, the following attributes are captured and saved to a **csv** file:
+The Discovery tool automates the discovery of Hyper-V virtual machine(s) settings for the RackWware RMM migration tool. By using the System Center Virtual Machine Manager (SCVMM) PowerShell cmdlets, the following attributes are captured and saved to a **csv** file:
 
  - Virtual machine name
  - Operating system
@@ -17,14 +17,14 @@ The Discovery tool automates the discovery of Hyper-V virtual machine(s) setting
  
 #### Usage
 
-The discovery tool is available on the RackWare RMM server under the `/opt/IBM/Hypver-V/` directory. The directory contains the following information:
+The discovery tool is available on the RackWare RMM server under the `/opt/IBM/HyperV/` directory. The directory contains the following information:
 
  - config.ini
  - discoveryTool
  - checksum.txt
 
 ```Shell
-$ cd /opt/IBM/
+$ cd /opt/IBM/HyperV/
 ```
 
 Before running the Discovery Tool command, you need to configure parameters in the `config.ini` file. 
@@ -107,7 +107,7 @@ $ ./discoveryTool --version
 #### SCVMM password
 
 - Discovery Tool prompts you for the administrator password of the SCVMM server.
-- RackWare RMM tools communicate to the VM over SSH (port 22) and thus only IP address(es) that are open on SSH port 22 will be saved to the csv file.
+- Discovery Tool communicate to the VM over SSH (port 22) and thus only IP address(es) that are open on SSH port 22 will be saved to the csv file.
 - If in guest virtual machine(s) and, multiple interfaces or IP addresses are open on SSH port 22, then the priority will be given to the primary or first network interface or IP Address of guest virtual machine(s). 
 
 #### RMM GUI wave planning
