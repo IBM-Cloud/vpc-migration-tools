@@ -9,7 +9,7 @@ The discovery script that automates the discovery and inventory of  VMware virtu
  - IP address
  
 The csv file can be uploaded to the Rackware RMM migration tool to create waves for bulk migration manually.
-The discovery script is available on the Rackware Appliance server under the /opt/IBM/ directory. The directory contains the following:
+The discovery script is available on the Rackware Appliance server under the /opt/IBM/VMware/ directory. The directory contains the following:
 
  - config.ini
  - discoveryTool
@@ -17,7 +17,7 @@ The discovery script is available on the Rackware Appliance server under the /op
  
 #### Usage
 ```Shell
-$ cd /opt/IBM/
+$ cd /opt/IBM/VMware/
 ```
 
 Before running the discovery tool,  we need to configure parameters / key-values in config.ini file. 
@@ -115,7 +115,7 @@ The script is enabled with encryption so when the user runs the above command   
 #### RMM GUI wave planning
 
 - The waves created on the RMM GUI will be named after the ESXI host ip address, and any discovered VMs on the ESXI host will be added to this wave.
-- The inventory file itself is in csv format under the /opt/IBM/ directory and contains the details of Guest VMs as discovered for all the respective ESXi Hosts.
+- The inventory file itself is in csv format under the /opt/IBM/VMware/ directory and contains the details of Guest VMs as discovered for all the respective ESXi Hosts.
 - If a wave exists for a given ESXi host, and if no unique IP addresses are identified, then no waves are created, and an appropriate message is displayed on  console, and the same is logged in the discoverytool.log.
 - In case there are non-unique ip addresses found, then delete the existing wave, and re-run the discovery script.
 - If the Rackware RMM wave is created, an appropriate message is displayed on the console and the same is logged to the discovertool.log.
