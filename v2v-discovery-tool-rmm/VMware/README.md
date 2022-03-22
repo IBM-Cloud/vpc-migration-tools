@@ -118,3 +118,5 @@ The script is enabled with encryption so when the user runs the above command   
 ###### Note: It is recommended that there are no more Guest VMs moved or added to ESXi machines in VMware infrastructure, for seamless experience during the migration preparation and execution phase.
 
 
+## Additional resources
+- How-to guide for [VMWare VM (classic) to IBM Cloud VPC VSI migration with RackWare RMM](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vmware-vpc-classic)
