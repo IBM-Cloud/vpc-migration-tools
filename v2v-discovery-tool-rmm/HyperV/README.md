@@ -31,7 +31,7 @@ Before running the Discovery Tool command, you need to configure parameters in t
 In the config.ini file you have two types of parameters:
 - Default parameters
 - Configurable parameters
-       
+   
 For example:
 
 ```Shell
@@ -119,3 +119,6 @@ $ ./discoveryTool --version
 - All the non reachable guest virtual machine(s) on SSH port 22 will be displayed on console, and logged in `discoverytool_error.log` file.
 	 
 ###### Note: It is recommended that there are no more guest virtual machine(s) moved or added to Hyper-V cluster, for seamless experience during the migration preparation and execution phase.
+
+## Additional resources
+- How-to guide for [Microsoft Hyper-V VM to IBM Cloud VPC migration with RackWare RMM](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-migrating-images-vmware-vsi)
