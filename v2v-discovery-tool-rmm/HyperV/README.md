@@ -113,7 +113,7 @@ $ ./discoveryTool --version
 #### RMM GUI wave planning
 
 - Waves ares created on the RMM GUI will be named after the Hyper-V cluster name (FQDN), and any discovered VMs on the Hyper-V cluster host will be added to this wave.
-- The inventory file is in csv format under the `/opt/IBM/Hyper-V/` directory and contains the details of guest virtaual machine(s) as discovered from the respective Hyper-V cluster.
+- The inventory file is in csv format under the `/opt/IBM/HyperV/` directory and contains the details of guest virtaual machine(s) as discovered from the respective Hyper-V cluster.
 - If a wave exists for a given Hyper-V cluster, and if no unique IP addresses are found, then no waves are created, and an appropriate message is displayed on  the console, and the same is logged in the `discoverytool_info.log` file. 
 - If the Rackware RMM wave is created, an appropriate message is displayed on the console and the same is logged to the `discoverytool_info.log` file.
 - All the non reachable guest virtual machine(s) on SSH port 22 will be displayed on console, and logged in `discoverytool_error.log` file.
