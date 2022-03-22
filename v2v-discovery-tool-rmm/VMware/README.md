@@ -48,7 +48,7 @@ If the discovery Tool is executed without any arguments, it will display the usa
 ```Shell
 $ ./discoveryTool
 ```
-	usage: Discovery Tool [-h] [--version] -s VSPHERE -u USERNAME [-o PORT]   [-nossl]
+	usage: Discovery Tool [-h] [--version] -s VSPHERE -u USERNAME [-o PORT]
 	Discovery Tool: error: the following arguments are required: -s/--vsphere,  -u/--username
 	
 Discovery script logs are stored in /var/log/discoverytool.log
@@ -58,7 +58,7 @@ Run the discovery script with -h or --help option.
 $  ./discoveryTool -h
 ```
 	
-	usage Discovery Tool [-h] [--version] -s VSPHERE -u USERNAME [-o PORT] [- nossl]
+	usage Discovery Tool [-h] [--version] -s VSPHERE -u USERNAME [-o PORT]
 		optional arguments:
 		-h | --help 
 			show this help message and exit
@@ -79,9 +79,6 @@ $  ./discoveryTool -h
   			-o PORT | --port PORT 
 				If the user has defined custom port for vSphere API server, i.e., not 443
 			
-			-nossl | --disable-ssl-verification
-				This option disables ssl host certificate verification
-			
 To check the discovery tool version, use this command:
 ```Shell
 $ ./discoveryTool --version
@@ -92,18 +89,16 @@ To discover the guest VMs from ESXi host the required arguments are
 
 	-s	– 	IP address of vSphere host. 
 	-u	– 	Username of vSphere host to connect. 
-	-nossl	– 	This option is used to connect vSphere host using ssl disabled, between discovery Tool and vSphere host. 
 
 #### Vsphere Password
 
 The -u argument of the script will prompt the user for the administrator password of the  vsphere server.
 Example:
 ```Shell
-$ ./discoveryTool -s  <vsphere server>-u administrator@vsphere.local -nossl
+$ ./discoveryTool -s  <vsphere server>-u administrator@vsphere.local
 ```
-###### Note: Currently the tool is required to run with -nossl option even if there is a  valid SSL certificate installed on vsphere.
 
-- Rackware RMM tools communicate to the VM over SSH (port 22) and thus only IP address(es) that is open SSH will saved to the csv file.
+- Discovery tool communicates to the VM over SSH (port 22) and thus only IP address(es) that is open SSH will saved to the csv file.
 - If multiple ip addresses allows SSH, then the priority will be given to the 1st  IP of the VM. 
 
 #### Encryption/Decryption Key
