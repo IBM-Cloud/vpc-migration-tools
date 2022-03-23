@@ -1,4 +1,4 @@
-## Discovering the VMware guest VMs using the discovery Tool
+## Discovering the VMware guest VMs using the Discovery Tool
 
 #### Overview
 
