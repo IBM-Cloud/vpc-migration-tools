@@ -103,6 +103,14 @@ To check the Discovery Tool version, use the following command:
 ```Shell
 $ ./discoveryTool --version
 ```
+#### SCVMM PowerShell Cmdlets
+Following are some important and generic SCVMM powershell cmdlets used in Discovery Tool :
+
+`Get-SCVMHostCluster`
+
+`Get-SCVMHost -VMHostCluster`
+
+`fetch VirtualNetworkAdapters using Get-SCVirtualMachine`
 
 #### SCVMM password
 
