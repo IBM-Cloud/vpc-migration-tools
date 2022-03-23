@@ -32,7 +32,7 @@ $ cat config.ini
 ```
 		[log]
 		# Log file where the discovery tool will keep the logs files.
-		log_file = /var/log/discoverytool_info.log < non-Configurable >
+		log_file = /var/log/discoverytool.log < non-Configurable >
 		#Log level, this can be DEBUG, INFO, WARNING, ERROR, CRITICAL, the  recommended is INFO. Use DEBUG in case of troubleshooting.
 		log_level = DEBUG  < non-Configurable >
 		#This folder contains the file where the discovered guest VMs Rackware RMM  wave csv files are created, based on different ESXi host IP address.
@@ -111,7 +111,7 @@ The script is enabled with encryption so when the user runs the above command   
 
 - The waves created on the RMM GUI will be named after the ESXI host ip address, and any discovered VMs on the ESXI host will be added to this wave.
 - The inventory file itself is in csv format under the /opt/IBM/VMware/ directory and contains the details of Guest VMs as discovered for all the respective ESXi Hosts.
-- If a wave exists for a given ESXi host, and if no unique IP addresses are identified, then no waves are created, and an appropriate message is displayed on  console, and the same is logged in the discoverytool_info.log.
+- If a wave exists for a given ESXi host, and if no unique IP addresses are identified, then no waves are created, and an appropriate message is displayed on  console, and the same is logged in the discoverytool.log.
 - In case there are non-unique ip addresses found, then delete the existing wave, and re-run the discovery script.
 - If the Rackware RMM wave is created, an appropriate message is displayed on the console and the same is logged to the discovertool.log.
 	 
