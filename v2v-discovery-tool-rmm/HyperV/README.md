@@ -107,7 +107,7 @@ $ ./discoveryTool --version
 #### SCVMM password
 
 - Discovery Tool prompts you for the administrator password of the SCVMM server.
-- Discovery Tool communicate to the VM over SSH (port 22) and thus only IP address(es) that are open on SSH port 22 will be saved to the csv file.
+- Discovery Tool communicate to SCVMM server and to the VM over SSH (port 22) and thus only IP address(es) that are open on SSH port 22 will be saved to the csv file.
 - If in guest virtual machine(s) and, multiple interfaces or IP addresses are open on SSH port 22, then the priority will be given to the primary or first network interface or IP Address of guest virtual machine(s). 
 
 #### RMM GUI wave planning
