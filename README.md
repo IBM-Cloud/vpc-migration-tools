@@ -35,13 +35,13 @@ If you are migrating from another hypervisor, the image needs to be in `qcow2`. 
 
 If you are RackWare RMM tool for migration, and if your environment is VMWare based then use this tool for automated discovery and wave setup.
 
-[VMWare discovery tool](v2v-discovery-tool-rmm/)
+[VMWare discovery tool](v2v-discovery-tool-rmm/VMware/)
 
 ## Discovering the Hyper-V guest virtual machines ##
 
 If you are RackWare RMM tool for migration, and if your environment is Hyper-V based then use this tool for automated discovery and wave setup.
 
-[Hyper-V discovery tool](hyper-v-discovery-tool-rmm/)
+[Hyper-V discovery tool](v2v-discovery-tool-rmm/HyperV/)
 
 ## Suggestion/Issues ##
 
