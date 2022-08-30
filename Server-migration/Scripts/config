@@ -1,0 +1,42 @@
+#Name and version of the source vm
+#supported os version
+#centos 7
+#redhat 7, redhat 8
+#ubuntu 18.04, ubuntu 20.04
+#debian 9, debian 10, debian 11
+#windows 2012, windows 2012-r2 windows 2016 windows 2019
+OS_NAME=
+OS_VERSION=
+ROOT_USERNAME=
+#region for the bucket and same region will be used for creating custom image
+#Name            Display name   
+#au-syd          Sydney   
+#in-che          Chennai   
+#jp-osa          Osaka   
+#jp-tok          Tokyo   
+#kr-seo          Seoul   
+#eu-de           Frankfurt   
+#eu-gb           London   
+#ca-tor          Toronto   
+#us-south        Dallas   
+#us-south-test   Dallas Test   
+#us-east         Washington DC   
+#br-sao          Sao Paulo   
+API_KEY=
+REGION=
+#COS bucket name
+BUCKET=
+#Custom image name
+CUSTOM_IMAGE_NAME=
+#VPC vsi name
+VSI_NAME=
+#Instance profile for VPC VSI
+INSTANCE_PROFILE_NAME=
+#ssh key for VPC VSI
+VSI_SSH_KEYNAME_NAME=
+#Resource Group Name
+RESOURCE_GROUP=
+#VPC Name
+VPC_NAME=
+#Subnet Name
+SUBNET_NAME=
