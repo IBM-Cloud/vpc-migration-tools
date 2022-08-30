@@ -1,0 +1,43 @@
+#Name and version of the source vm
+#supported os version
+#centos 7
+#redhat 7, redhat 8
+#ubuntu 18.04, ubuntu 20.04
+#debian 9, debian 10
+#windows 2012, windows 2012-r2 windows 2016
+OS_NAME=centos
+OS_VERSION=7
+ROOT_USERNAME=root
+#region for the bucket and same region will be used for creating custom image
+#Name            Display name   
+#au-syd          Sydney   
+#in-che          Chennai   
+#jp-osa          Osaka   
+#jp-tok          Tokyo   
+#kr-seo          Seoul   
+#eu-de           Frankfurt   
+#eu-gb           London   
+#ca-tor          Toronto   
+#us-south        Dallas   
+#us-south-test   Dallas Test   
+#us-east         Washington DC   
+#br-sao          Sao Paulo   
+API_KEY=xbjbAeFNdJQAjAQsOUfw38_BLfTNYFnrqxj3VfHgRVjQ
+REGION=eu-de
+#COS bucket name
+BUCKET=rebs-migration
+#Custom image name
+CUSTOM_IMAGE_NAME=qwerty26feb
+#VPC vsi name
+VSI_NAME=qwertyvsi26feb
+#Instance profile for VPC VSI
+INSTANCE_PROFILE_NAME=bx2-2x8
+#ssh key for VPC VSI
+VSI_SSH_KEYNAME_NAME=rebs-mac-key
+#Resource Group Name
+RESOURCE_GROUP=Migration
+#VPC Name
+VPC_NAME=rebs-diy-catalog
+#Subnet Name
+SUBNET_NAME=sn-20220123-01
+
