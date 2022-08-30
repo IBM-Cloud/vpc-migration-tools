@@ -17,7 +17,7 @@ else
 fi
 for f in Appliance-new.sh config config-with-values cronjobscheduler.sh ibmcloudloginstatus.sh linux_precheck.sh migration.sh windows_precheck.ps1 
  do
-  response=$(curl -so ${f} -w "%{http_code}" https://raw.githubusercontent.com/sateesh2954/diy-migration-appliance/main/Scripts/${f})
+  response=$(curl -so ${f} -w "%{http_code}" https://raw.github.com/sateesh2954/vpc-migration-tools/tree/main/Server-migration/Scripts/${f})
    if [ "$response" -eq "200" ]; then
     echo "${f} download complete - /opt/diy-migration-appliance/Scripts, http response code is: $response" >>/var/log/diy_download_script.log
    else
