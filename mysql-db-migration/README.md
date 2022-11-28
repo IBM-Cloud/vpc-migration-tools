@@ -22,11 +22,11 @@ Complete the following steps to clone and run the database migration script:
 1. Run the following commands to clone the public GitHub repository:
 
     ```
-    git clone https://github.com/IBM-Cloud/large-data-migration-mysql.git
+    git clone https://github.com/IBM-Cloud/vpc-migration-tools.git
     ```
 
     ```
-    cd large-data-migration-mysql
+    cd vpc-migration-tools/mysql-db-migration
     ```
 
 2. Install the prerequisites modules for Python using pip or pip3 by running the following commands:
