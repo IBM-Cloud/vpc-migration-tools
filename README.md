@@ -25,6 +25,12 @@ script uses an open source utility `rsync` with the some default commands.
 
 [rysnc script](data-migration/)
 
+## DB Migration ##
+
+Script to assist with mysql db migration between 2 servers.
+
+[MySQL db migration](db-migration/mysql/)
+
 ## Image Conversion ##
 
 If you are migrating from another hypervisor, the image needs to be in `qcow2`. Use this script to convert guest images from Vmware in vdmk format to qcow2. 
