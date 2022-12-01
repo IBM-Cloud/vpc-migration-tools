@@ -1,0 +1,3 @@
+Server Migration for IBM Cloud tool will help customer their journey to the IBM Cloud practically seamless. This self-service tool can be consumed by customers to migrate their virtual servers to IBM Cloud VPC. This tool can be used by engineers, architects or support team from any of the Global service integrators (GSI), system integrators (SI). This tool will help the clients who want to leverage IBM Cloud native capabilities and modernize their infrastructure by migrating to IBM Cloud from on-premise datacenter. This tool is completely simplified, automated and saves time, cost and effort for server migration.
+
+In IBM Cloud, you can launch the IBM Cloud Server Migration from Catalog and get all the scripts for migration from the Catalog Appliance server.
