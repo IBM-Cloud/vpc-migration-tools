@@ -31,6 +31,12 @@ If you are migrating from another hypervisor, the image needs to be in `qcow2`. 
 
 [image conversion](image-conversion)
 
+## Server Migration ##
+
+If you are migrating from vmware vmdk or IBM Cloud Classic, these script will helpful for migration automation of pre-checks, image conversion, custom image creation and auto-provision target server into IBM Cloud VPC . 
+
+[Server Migration](server-migration)
+
 ## Discovering the VMware guest virtual machines ##
 
 If you are RackWare RMM tool for migration, and if your environment is VMWare based then use this tool for automated discovery and wave setup.
