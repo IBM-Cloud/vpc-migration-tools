@@ -27,25 +27,30 @@ script uses an open source utility `rsync` with the some default commands.
 
 ## DB Migration ##
 
-Script to assist with mysql db migration between 2 servers.
+Script based tool to assist with mysql db migration between 2 servers. The script logs into the
+source and initiate mysqldump utility and copies it to a COS. Target server copies it from the
+COS and restores the backup db.
 
 [MySQL db migration](db-migration/mysql/)
 
 ## Image Conversion ##
 
-If you are migrating from another hypervisor, the image needs to be in `qcow2`. Use this script to convert guest images from Vmware in vdmk format to qcow2. 
+If you are migrating from another hypervisor, the image needs to be in `qcow2`. Use this script
+to convert guest images from Vmware in vdmk format to qcow2. 
 
 [image conversion](image-conversion)
 
 ## Discovering the VMware guest virtual machines ##
 
-If you are RackWare RMM tool for migration, and if your environment is VMWare based then use this tool for automated discovery and wave setup.
+If you are RackWare RMM tool for migration, and if your environment is VMWare based then use
+this tool for automated discovery and wave setup.
 
 [VMWare discovery tool](v2v-discovery-tool-rmm/VMware/)
 
 ## Discovering the Hyper-V guest virtual machines ##
 
-If you are RackWare RMM tool for migration, and if your environment is Hyper-V based then use this tool for automated discovery and wave setup.
+If you are RackWare RMM tool for migration, and if your environment is Hyper-V based then use
+this tool for automated discovery and wave setup.
 
 [Hyper-V discovery tool](v2v-discovery-tool-rmm/HyperV/)
 
