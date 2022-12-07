@@ -1,6 +1,6 @@
 # VPC Migration Tools
 
-This repository provides access to different tools and solutions that you can use when migrating your infrastructure to IBM Cloud VPC.  The tools include  individual custom scripts and open source utilities.  You can use the tools as is or you can modify them to fit your needs. As a recommended
+This repository provides access to different tools and solutions that can be used to migrate from classic or on-prem resources to IBM Cloud VPC.  The tools include individual custom scripts and open source utilities.  You can use the tools as is or modify them to fit your needs. As a recommended
 practice, carefully review any materials from this repository before you use them on any live systems.
 
 ## Pre Validation Check Scripts ##
@@ -35,22 +35,22 @@ COS and restores the backup db.
 
 ## Image Conversion ##
 
-If you are migrating from another hypervisor, the image needs to be in `qcow2`. Use this script
-to convert guest images from Vmware in vdmk format to qcow2. 
+When migrating from an ESXi hypervisor, the image needs to be in `qcow2`. This script
+converts guest images from Vmware in vdmk format to qcow2. 
 
 [image conversion](image-conversion)
 
 ## Discovering the VMware guest virtual machines ##
 
-If you are RackWare RMM tool for migration, and if your environment is VMWare based then use
-this tool for automated discovery and wave setup.
+This script is a complementary tool to RackWare RMM migration tool. The script discovers virtual machines on ESXi hypervisor and creates
+wave on the Rackware RMM server.
 
 [VMWare discovery tool](v2v-discovery-tool-rmm/VMware/)
 
 ## Discovering the Hyper-V guest virtual machines ##
 
-If you are RackWare RMM tool for migration, and if your environment is Hyper-V based then use
-this tool for automated discovery and wave setup.
+This script is a complementary tool to RackWare RMM migration tool. The script discovers guest machines on Windows hypervisor and creates
+wave on the Rackware RMM server.
 
 [Hyper-V discovery tool](v2v-discovery-tool-rmm/HyperV/)
 
