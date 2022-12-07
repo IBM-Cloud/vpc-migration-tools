@@ -81,7 +81,7 @@ Complete the following steps to mount the IBM Cloud Object Storage bucket:
   COS Endpoint: https://s3.dal.us.cloud-object-storage.appdomain.cloud
   ```
 
-Hence the bucket is located on the US-South Dallas region. To know more about endpoints refer the below link:
+In this example, the bucket is located in the US-South Dallas region. To know more about endpoints refer the below link:
 [Endpoints and storage locations](/docs/cloud-object-storage?topic=cloud-object-storage-endpoints).
 
 * IBM Cloud API Key - It authenticates the user to perform actions on the provided bucket. The user should be able to write privileges on the COS bucket.
