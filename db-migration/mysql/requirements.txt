@@ -1,0 +1,10 @@
+boto3
+botocore
+fabric3
+paramiko
+progressbar
+pwinput
+python-dateutil
+requests
+termcolor
+tqdm
