@@ -1,0 +1,156 @@
+#!/bin/bash
+
+#----------------------------------------------------------------------------------------------------------------------------------------
+# USAGE	: host-execute-powershell [target user] [target ip] [domain name] [domain user id] [password] [script type]
+#
+# Performs a execution of provided powershell script on remote host
+# Options:
+#    [ target user ] Provide the username that will be used to connect to target host.
+#    [ target IP ] Provide target host IP address to run powershell on it.
+#    [ domain name ] Provide domain name that needs to be configured on target host.
+#    [ domain user id ] Provide domain user id that needs to be configured on target host.
+#    [ password ] Provide password string for the domain user to be configured.
+#    [ script type ] Specify the type when script will be executed in sync operation e.g. Post or Pre
+#
+# This script is suppose to be executed via RackWare Management Module (RMM).
+# DESCRIPTION	: This an automation and wrapper script to be executed after migration operation using RackWare Management Module (RMM).
+# Location for file : /opt/rackware/utils/pre-post-scripts/
+#---------------------------------------------------------------------------------------------------------------------------------------
+
+readonly LOGFILE=/var/log/rackware/pre-post-script.log
+
+function create_log_file() {
+    if [ ! -f $LOGFILE ]
+    then
+        touch $LOGFILE
+    fi
+}
+
+function log_file() {
+    ( echo "$(date "+%d %B %Y %T %p %Z" ) : ${1}" ) 2>&1 | tee -a $LOGFILE
+}
+
+function validate_input() {
+
+    readonly usage="\
+Usage: host-execute-powershell [target user] [target ip] [domain name] [domain user id] [password] [script type]
+
+Performs a execution of provided powershell script on remote host
+Options:
+
+    [ target user ] Provide the username that will be used to connect to target host.
+    [ target IP ] Provide target host IP address to run powershell on it.
+    [ domain name ] Provide domain name that needs to be configured on target host.
+    [ domain user id ] Provide domain user id that needs to be configured on target host.
+    [ password ] Provide password string for the domain user to be configured.
+    [ script type ] Specify the type when script will be executed in sync operation e.g. Post or Pre
+"
+    local EXIT_ERROR_CODE=1
+    local target_user=${1}
+    local target_ip=${2}
+    local domain_name=${3}
+    local domain_user_id=${4}
+    local password=${5}
+    local script_type=${6}
+
+    if [[ -z "${target_user}" ]]; then
+        echo "Please specify a target username. ${usage}"
+        exit "${EXIT_ERROR_CODE}"
+    fi
+    if [[ -z "${target_ip}" ]]; then
+        echo "Please specify a target ip address. ${usage}"
+        exit "${EXIT_ERROR_CODE}"
+    fi
+    if [[ -z "${domain_name}" ]]; then
+        echo "Please specify domain name. ${usage}"
+        exit "${EXIT_ERROR_CODE}"
+    fi
+    if [[ -z "${domain_user_id}" ]]; then
+        echo "Please specify a domain user id to configure. ${usage}"
+        exit "${EXIT_ERROR_CODE}"
+    fi
+    if [[ -z "${password}" ]]; then
+        echo "Please specify a domain user id's relevant password. ${usage}"
+        exit "${EXIT_ERROR_CODE}"
+    fi
+    if [[ -z "${script_type}" ]] || [[ "${script_type}" != "Post" && "${script_type}" != "post" ]]; then
+        echo "Please specify a script type when it should be executed in sync. ${usage}"
+        exit "${EXIT_ERROR_CODE}"
+    fi
+}
+
+function copy() {
+    local target_user=${1}
+    local target_ip=${2}
+    local script_dir=/cygdrive/c/
+    local script_path_=/opt/rackware/utils/pre-post-scripts/rejoin_domain.ps1
+    local secure_copy_="scp ${script_path_} ${target_user}@${target_ip}:${script_dir}"
+    
+    echo "Executing command : $secure_copy_"
+
+    ${secure_copy_}
+
+    if [[ ${?} -ne 0 ]]; then
+        echo "Failed to copy powershell script ${script_path_} to target host ${target_ip}."
+        exit "${?}"
+    fi
+
+    echo "Powershell script ${script_path_} copied succesfully to target host ${target_ip}."
+}
+
+function execute() {
+    local target_user=${1}
+    local target_ip=${2}
+    local domain_name=${3}
+    local domain_user_id=${4}
+    local password=${5}
+    local command_=
+    local opts_=()
+    local target_=
+    local remote_script_path_="C:\\rejoin_domain.ps1"
+
+    target_=${target_user}@${target_ip}
+
+    if [[ -n ${domain_name} ]]; then
+        opts_+=("${domain_name}")
+    fi
+
+    if [[ -n ${domain_user_id} ]]; then
+        opts_+=("${domain_user_id}")
+    fi
+
+    if [[ -n ${password} ]]; then
+        opts_+=("${password}")
+    fi
+
+    command_="powershell.exe -Command \"${remote_script_path_} ${opts_[*]}\""
+    echo "Executing command : ${target_} powershell.exe -Command \"${remote_script_path_} ${opts_[0]}  ${opts_[1]} ******\""
+    ssh ${target_} "${command_}"
+    exit "${?}"
+}
+
+function main() {
+    local target_user=${1}
+    local target_ip=${2}
+    local domain_name=${3}
+    local domain_user_id=${4}
+    local password=${5}
+    local script_type=${6}
+
+    create_log_file
+    echo "Parameters : target_user=${target_user}, target_ip=${target_ip}, domain_name=${domain_name}, domain_user_id=${domain_user_id}, script_type=${script_type}"
+    validate_input "${target_user}" "${target_ip}" "${domain_name}" "${domain_user_id}" "${password}" "${script_type}"
+    copy "${target_user}" "${target_ip}"
+    execute "${target_user}" "${target_ip}" "${domain_name}" "${domain_user_id}" "${password}"
+}
+
+log_file "Script started."
+main $@ 2>&1 | tee -a $LOGFILE
+log_file "Script stopped."
+
+# Local Variables:
+# sh-basic-offset: 4
+# indent-tabs-mode: nil
+# End:
+
+# vi: set et ts=4 sw=4 :

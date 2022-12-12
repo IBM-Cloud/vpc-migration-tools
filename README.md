@@ -32,6 +32,7 @@ source and initiate mysqldump utility and copies it to a COS. Target server copi
 COS and restores the backup db.
 
 [MySQL db migration](db-migration/mysql/)
+[MSSQL db migration](db-migration/mssql/)
 
 ## Image Conversion ##
 
