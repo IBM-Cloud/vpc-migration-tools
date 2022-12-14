@@ -144,6 +144,7 @@ function main() {
     execute "${target_user}" "${target_ip}" "${domain_name}" "${domain_user_id}" "${password}"
 }
 
+log_file "----------------------------------------------------------------------------------------------------"
 log_file "Script started."
 main $@ 2>&1 | tee -a $LOGFILE
 log_file "Script stopped."

@@ -8,39 +8,54 @@ param($domainName, $userAccount, $password);
 #Import-Module ActiveDirectory
 
 function unjoinDomain( $credentials ) {
-    Write-host "Unjoin domain.";
-    Remove-Computer -UnjoinDomaincredential $credentials -PassThru -Verbose -Force;
+    try {
+        Write-host "Unjoining domain.";
+        Remove-Computer -UnjoinDomaincredential $credentials -PassThru -Verbose -Force;
+    } catch {
+        Write-Host "Failed to unjoin domain:";
+        Write-Host $_;
+	}
 }
 
 function joinDomain( $domainName, $credentials ) {
-    Write-host "Join domain.";
-    Add-Computer -DomainName $domainName -Credential $credentials -Restart -Verbose -Force;
+    try {
+        Write-host "Joining domain.";
+        Add-Computer -DomainName $domainName -Credential $credentials -Restart -Verbose -Force;    
+    } catch {
+		Write-Host "Failed to join domain:";
+        Write-Host $_;
+    }
 }
 
 function main( $domainName, $userAccount, $password ) {
 
-    Write-host "Parameters : -domainName $domainName -userAccount $userAccount -password *******";
+    try {
+        Write-host "Parameters : -domainName $domainName -userAccount $userAccount -password *******";
 
-    $localComputerName = ( Get-WmiObject -Class Win32_ComputerSystem ).Name;
-
-    $password = ConvertTo-SecureString $password -AsPlainText -Force;
-    $fullUserAccount = $domainName + '\' + $userAccount;
-    $credentials = New-Object System.Management.Automation.PSCredential( $fullUserAccount, $password );
-
-    if( $False -eq ( Get-WmiObject -Class Win32_ComputerSystem ).PartOfDomain ) {
-        Write-host "Node computer '$localComputerName' is not part of '$domainName'.";
-        Exit;
-    }
-
-    if( $True -eq ( Test-ComputerSecureChannel -Credential $credentials ) ) {
-        Write-host "Secure channel between primary domain '$domainName' and node computer '$localComputerName' is not broken.";
-        Exit;
+        $localComputerName = ( Get-WmiObject -Class Win32_ComputerSystem ).Name;
+    
+        $password = ConvertTo-SecureString $password -AsPlainText -Force;
+        $fullUserAccount = $domainName + '\' + $userAccount;
+        $credentials = New-Object System.Management.Automation.PSCredential( $fullUserAccount, $password );
+    
+        if( $False -eq ( Get-WmiObject -Class Win32_ComputerSystem ).PartOfDomain ) {
+            Write-host "Node computer '$localComputerName' is not part of '$domainName'.";
+            Exit;
+        }
+    
+        if( $True -eq ( Test-ComputerSecureChannel -Credential $credentials ) ) {
+            Write-host "Secure channel between primary domain '$domainName' and node computer '$localComputerName' is not broken.";
+            Exit;
+        }
+    } catch {
+        Write-Host "Rejoin domain script failed:";
+        Write-Host $_;
     }
 
     unjoinDomain -credentials $credentials;
     joinDomain -domainName $domainName -credentials $credentials;
 }
 
-Start-Transcript -Path "C:\rejoin_domain.log";
+Start-Transcript -Append -Path "C:\rejoin_domain.log";
 main -domainName $domainName -userAccount $userAccount -password $password;
 Stop-Transcript;
