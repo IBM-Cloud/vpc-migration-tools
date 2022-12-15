@@ -1,4 +1,7 @@
-# Post migration activities script
+# Overview
+In case of MSSQL clustred database migration using [Rackware Management Module (RMM)](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-mssql-db-overview#rackware-management-module) there is known issue. When MSSQL migration is performed for machines with clustered node. User will not be able to login with domain credentials because of error "the trust relationship between this workstation and the primary domain failed". So even if you enter the correct domain credentials post migration, it does not allow to user to login. So as a simple solution to this problem is to login to the node machine using local admin account and explicitly unjoin node machine from domain and rejoin domain. Once this is done, user can login to the target machine using domain credentials. This process is automated in the form of script. [Click here](db-migration/msssql/post-migration) for script.
+
+# How to use post migration domain rejoin script?
 1. Download scripts from https://github.com/IBM-Cloud/vpc-migration-tools/tree/main/data-migration/db-migration/mssql/ 
    1. host-execute-powershell
    2. rejoin_domain.ps1 
@@ -7,7 +10,7 @@
 3. Assing execute permission to file as follows :
 ```chmod +x /opt/rackware/utils/pre-post-scripts/host-execute-powershell```
 4. Perform following actions in RMM Web UI :
-   1. Enter correct DNS IP address to be replicated in target server in ‘Replicate DNS Setting’ e.g., 52.117.162.120 
+   1. Enter correct DNS IP address to be replicated in target server in ‘Replicate DNS Setting’ e.g., 52.117.162.120. This will set DNS server ip address on target machine under network setup. Once its set target machine can be part of active directory or domain controller machines.
    2. Enter path of host-execute-powershell script in field ‘Event Script’ e.g., /opt/rackware/utils/pre-post-scripts/host-execute-powershell 
    3. Enter correct comma separated list of parameters in ‘Event Script Args’ in following sequence 
    ```<user_account>,<target_ip>,<domain_name>,<domain_user_id>,<password>, <pre or post>```

@@ -27,12 +27,15 @@ script uses an open source utility `rsync` with the some default commands.
 
 ## DB Migration ##
 
-Script based tool to assist with mysql db migration between 2 servers. The script logs into the
-source and initiate mysqldump utility and copies it to a COS. Target server copies it from the
-COS and restores the backup db.
+- [MySQL](db-migration/mysql/)
 
-[MySQL db migration](db-migration/mysql/)
-[MSSQL db migration](db-migration/mssql/)
+   Script based tool to assist with mysql db migration between 2 servers. The script logs into the
+source and initiate mysqldump utility and copies it to a COS. Target server copies it from the
+COS and restores the backup db. [Click here](db-migration/mysql/) for script.
+
+- [MSSQL](db-migration/mssql/post-migration/)
+
+   In case of MSSQL clustred database migration using [Rackware Management Module (RMM)](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-mssql-db-overview#rackware-management-module) there is known issue. When MSSQL migration is performed for machines with clustered node. User will not be able to login with domain credentials because of error "the trust relationship between this workstation and the primary domain failed". So even if you enter the correct domain credentials post migration, it does not allow to user to login. So as a simple solution to this problem is to login to the node machine using local admin account and explicitly unjoin node machine from domain and rejoin domain. Once this is done, user can login to the target machine using domain credentials. This process is automated in the form of script. [Click here](db-migration/msssql/post-migration) for script.
 
 ## Image Conversion ##
 
