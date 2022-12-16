@@ -1,5 +1,7 @@
 # Overview
-In case of MSSQL clustred database migration using [Rackware Management Module (RMM)](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-mssql-db-overview#rackware-management-module) there is known issue. When MSSQL migration is performed for machines with clustered node. User will not be able to login with domain credentials because of error "the trust relationship between this workstation and the primary domain failed". So even if you enter the correct domain credentials post migration, it does not allow to user to login. So as a simple solution to this problem is to login to the node machine using local admin account and explicitly unjoin node machine from domain and rejoin domain. Once this is done, user can login to the target machine using domain credentials. This process is automated in the form of script. [Click here](db-migration/msssql/post-migration) for script.
+When migrating a clustered MSSQL, the new target MSSQL clustered DB does not properly join the domain due to the trust relationship. This prevents login with the domain credentials.
+
+The script helps resolves this by logging into the new clustered DBs with local admin credentials and explicitly unjoining and rejoining the domain.
 
 # How to use post migration domain rejoin script?
 1. Download scripts from https://github.com/IBM-Cloud/vpc-migration-tools/tree/main/data-migration/db-migration/mssql/ 
