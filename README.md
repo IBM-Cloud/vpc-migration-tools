@@ -31,7 +31,7 @@ script uses an open source utility `rsync` with the some default commands.
 
    Script based tool to assist with mysql db migration between 2 servers. The script logs into the
 source and initiate mysqldump utility and copies it to a COS. Target server copies it from the
-COS and restores the backup db. [Click here](db-migration/mysql/) for script.
+COS and restores the backup db.
 
 - [MSSQL](db-migration/mssql/post-migration/)
 
