@@ -27,11 +27,15 @@ script uses an open source utility `rsync` with the some default commands.
 
 ## DB Migration ##
 
-Script based tool to assist with mysql db migration between 2 servers. The script logs into the
+- [MySQL](db-migration/mysql/)
+
+   Script based tool to assist with mysql db migration between 2 servers. The script logs into the
 source and initiate mysqldump utility and copies it to a COS. Target server copies it from the
 COS and restores the backup db.
 
-[MySQL db migration](db-migration/mysql/)
+- [MSSQL](db-migration/mssql/post-migration/)
+
+   This is a post-script for clustered MSSQL migration with the [Rackware RMM tool](https://cloud.ibm.com/docs/cloud-infrastructure?topic=cloud-infrastructure-mssql-db-overview#rackware-management-module) that addresses domain joins for the new target MSSQL clusters.
 
 ## Image Conversion ##
 

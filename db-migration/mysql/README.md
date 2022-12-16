@@ -26,7 +26,7 @@ Complete the following steps to clone and run the database migration script:
     ```
 
     ```
-    cd vpc-migration-tools/mysql-db-migration
+    cd vpc-migration-tools/db-migration/mysql
     ```
 
 2. Install the prerequisites modules for Python using pip or pip3 by running the following commands:
